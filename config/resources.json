@@ -1,0 +1,9 @@
+{
+  "resources_local_path": "resources",
+  "default_files": {
+    "transcript": "transcript.txt",
+    "summary_a": "summary_a.txt",
+    "summary_b": "summary_b.txt",
+    "slides_folder": "slides"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "study_title": "Video Detailed Summary — Comparative Evaluation",
+  "semester": "Spring 2026",
+  "study_open_date": "2026-04-25",
+  "study_close_date": "2026-06-30",
+  "min_participants_per_course": 3,
+
+  "rating_scale": {
+    "min": 1,
+    "max": 10,
+    "low_label": "Not at all",
+    "high_label": "Extremely"
+  },
+
+  "dimensions": [
+    {
+      "id": "faithfulness",
+      "label": "Faithfulness",
+      "question": "How well does this summary reflect what was actually covered in the video segment?"
+    },
+    {
+      "id": "completeness",
+      "label": "Completeness",
+      "question": "How completely does this summary capture the key concepts from the video segment?"
+    },
+    {
+      "id": "coherence",
+      "label": "Coherence",
+      "question": "How well does this summary present its ideas in a clear, logical, and organized way?"
+    },
+    {
+      "id": "usefulness",
+      "label": "Usefulness",
+      "question": "How useful is this summary as a review material for this video segment?"
+    }
+  ],
+
+  "familiarity_question": "How familiar are you with the topic covered in this video segment?",
+  "familiarity_options": [
+    { "id": "not_familiar",  "label": "Not familiar at all" },
+    { "id": "somewhat",      "label": "Somewhat familiar" },
+    { "id": "familiar",      "label": "Familiar" },
+    { "id": "very_familiar", "label": "Very familiar" }
+  ]
+}
