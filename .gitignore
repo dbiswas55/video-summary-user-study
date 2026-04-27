@@ -1,0 +1,29 @@
+# macOS / editor noise
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+
+# Python caches / virtualenvs
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+venv312/
+venv/
+.venv/
+
+# Local secrets / environment
+.env
+.env.*
+!.env.example
+
+# Local study resource data. Keep only the placeholder directory marker.
+resources/*
+!resources/.gitkeep
+
+# Logs / local dumps
+*.log
+*.sql.gz
+*.sql.zip
+*.dump

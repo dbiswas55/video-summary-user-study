@@ -1,4 +1,0 @@
-# This file keeps the /resources/ folder in git.
-# Per-instructor video assets are NOT committed to the repo.
-# Place them under: /resources/{instructor_id}/{video_id}/
-# See DEVELOPMENT.md for structure.

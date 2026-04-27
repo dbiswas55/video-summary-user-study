@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/../app/includes/auth.php';
+require_once __DIR__ . '/../app/includes/functions.php';
 
 startSessionIfNeeded();
 
@@ -33,26 +33,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } elseif ($step === 2) {
         $username = trim($_POST['username'] ?? '');
+        $email    = strtolower(trim($_POST['email'] ?? ''));
         $password = $_POST['password'] ?? '';
         $confirm  = $_POST['password_confirm'] ?? '';
 
         if (!isValidUsername($username)) {
             $errors[] = 'Username must be 3-50 characters: letters, numbers, underscore, dash.';
         }
-        if (strlen($password) < 8) {
-            $errors[] = 'Password must be at least 8 characters.';
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Please enter a valid email address, or leave it blank.';
+        }
+        if (strlen($password) < 4) {
+            $errors[] = 'Password must be at least 4 characters.';
+        } elseif (!preg_match('/[a-zA-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
+            $errors[] = 'Password must contain at least one letter and one number.';
         }
         if ($password !== $confirm) {
             $errors[] = 'Passwords do not match.';
         }
 
         if (empty($errors)) {
-            $stmt = getDb()->prepare('SELECT id FROM users WHERE username = ?');
-            $stmt->execute([$username]);
-            if ($stmt->fetch()) {
+            $stmt = getDb()->prepare('
+                SELECT id, username, email
+                FROM users
+                WHERE username = ? OR (? <> "" AND email = ?)
+                LIMIT 1
+            ');
+            $stmt->execute([$username, $email, $email]);
+            $existing = $stmt->fetch();
+            if ($existing && $existing['username'] === $username) {
                 $errors[] = 'That username is already taken. Please choose another.';
+            } elseif ($existing) {
+                $errors[] = 'That email is already registered. Try signing in instead.';
             } else {
                 $reg['username']      = $username;
+                $reg['email']         = $email !== '' ? $email : null;
                 $reg['password_hash'] = password_hash($password, PASSWORD_BCRYPT);
                 $_SESSION['registration'] = $reg;
                 header('Location: ?step=3');
@@ -66,6 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$subject_id]);
         if (!$stmt->fetch()) {
             $errors[] = 'Please select a valid subject.';
+        } elseif (empty($_POST['subject_confirmed'])) {
+            $errors[] = 'Please confirm that your subject area cannot be changed later.';
         } else {
             $reg['subject_id'] = $subject_id;
             $_SESSION['registration'] = $reg;
@@ -91,11 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->beginTransaction();
                 try {
                     $stmt = $pdo->prepare('
-                        INSERT INTO users (username, password_hash, subject_id, account_type, consent_given, consent_version, consent_timestamp)
-                        VALUES (?, ?, ?, "self_registered", TRUE, ?, ?)
+                        INSERT INTO users (username, email, password_hash, subject_id, account_type, consent_given, consent_version, consent_timestamp)
+                        VALUES (?, ?, ?, ?, "self_registered", TRUE, ?, ?)
                     ');
                     $stmt->execute([
                         $reg['username'],
+                        $reg['email'] ?? null,
                         $reg['password_hash'],
                         $reg['subject_id'],
                         $reg['consent_version'],
@@ -132,7 +150,7 @@ if ($step >= 2 && empty($reg['consent_agreed'])) { header('Location: ?step=1'); 
 if ($step >= 3 && empty($reg['username']))       { header('Location: ?step=2'); exit; }
 if ($step >= 4 && empty($reg['subject_id']))     { header('Location: ?step=3'); exit; }
 
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../app/includes/header.php';
 ?>
 
 <div class="register-wrapper">
@@ -180,34 +198,43 @@ include __DIR__ . '/includes/header.php';
 
     <?php elseif ($step === 2): ?>
       <h2>Create Your Account</h2>
-      <p class="muted-meta">Choose a username and password. No email is required.</p>
 
-      <form method="POST" class="auth-form">
+      <form method="POST" class="auth-form" id="registerForm">
         <input type="hidden" name="step" value="2">
         <label>
-          <span>Username</span>
-          <input type="text" name="username" value="<?= e($_POST['username'] ?? '') ?>" required minlength="3" maxlength="50" pattern="[a-zA-Z0-9_-]+">
+          <span>Username <span class="required-mark">*</span></span>
+          <input type="text" name="username" value="<?= e($_POST['username'] ?? $reg['username'] ?? '') ?>" required minlength="3" maxlength="50" pattern="[a-zA-Z0-9_-]+">
           <small>3–50 chars · letters, numbers, _ -</small>
         </label>
         <label>
-          <span>Password</span>
-          <input type="password" name="password" required minlength="8">
-          <small>Minimum 8 characters</small>
+          <span>Email <span class="field-optional">(optional)</span></span>
+          <input type="email" name="email" value="<?= e($_POST['email'] ?? $reg['email'] ?? '') ?>" maxlength="255" placeholder="your@email.com">
+          <small>Can be used for sign-in and account recovery.</small>
         </label>
         <label>
-          <span>Confirm Password</span>
-          <input type="password" name="password_confirm" required minlength="8">
+          <span>Password <span class="required-mark">*</span></span>
+          <input type="password" name="password" id="regPassword" required minlength="4">
+          <small>At least 4 characters · must include one letter and one number</small>
         </label>
-
-        <div class="warning-box">
-          ⚠️ Please write down your username and password. We do not store email and cannot recover them automatically.
-        </div>
+        <label>
+          <span>Confirm Password <span class="required-mark">*</span></span>
+          <input type="password" name="password_confirm" id="regConfirm" required minlength="4">
+        </label>
 
         <div class="form-actions">
           <a href="?step=1" class="btn btn-secondary">← Back</a>
           <button type="submit" class="btn btn-primary">Continue →</button>
         </div>
       </form>
+      <script>
+      document.getElementById('registerForm').addEventListener('submit', function(e) {
+        var pw = document.getElementById('regPassword').value;
+        var cn = document.getElementById('regConfirm').value;
+        if (pw.length < 4) { alert('Password must be at least 4 characters.'); e.preventDefault(); return; }
+        if (!/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) { alert('Password must contain at least one letter and one number.'); e.preventDefault(); return; }
+        if (pw !== cn) { alert('Passwords do not match.'); e.preventDefault(); }
+      });
+      </script>
 
     <?php elseif ($step === 3): ?>
       <h2>Select Your Subject Area</h2>
@@ -226,6 +253,10 @@ include __DIR__ . '/includes/header.php';
             </label>
           <?php endforeach; ?>
         </div>
+        <label class="checkbox-row">
+          <input type="checkbox" name="subject_confirmed" required>
+          <span>I understand that my subject area cannot be changed later.</span>
+        </label>
         <div class="form-actions">
           <a href="?step=2" class="btn btn-secondary">← Back</a>
           <button type="submit" class="btn btn-primary">Continue →</button>
@@ -239,14 +270,13 @@ include __DIR__ . '/includes/header.php';
 
       <form method="POST" class="auth-form">
         <input type="hidden" name="step" value="4">
-        <div class="course-list">
+        <div class="course-list compact-course-list">
           <?php foreach ($courses as $course): ?>
             <label class="course-option">
               <input type="checkbox" name="course_ids[]" value="<?= e($course['id']) ?>">
               <div class="course-info">
                 <span class="course-code"><?= e($course['code']) ?></span>
                 <span class="course-name"><?= e($course['name']) ?></span>
-                <span class="course-instructor"><?= e($course['instructor']) ?></span>
               </div>
             </label>
           <?php endforeach; ?>
@@ -262,4 +292,4 @@ include __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../app/includes/footer.php'; ?>

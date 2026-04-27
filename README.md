@@ -1,57 +1,46 @@
-# Video Detailed Summary — User Study 2
+# Video Detailed Summary - User Study 2
 
-PHP + MySQL survey system for the VDS comparative user study.
+PHP + MySQL web application for the VideoPoints comparative evaluation study. Participants sign in, choose courses in their subject area, view assigned lecture clips, compare two anonymized summary versions, and submit structured ratings for analysis.
 
-## Status: Phase 1 (Authentication)
+Detailed documentation lives in [`docs/`](docs/). The root README is intentionally short so the phase documents remain the source of truth.
 
-✅ Login + 4-step registration with consent
-✅ Subject + courses selection
-✅ Pre-issued and self-registered accounts
-✅ Session management with bcrypt passwords
-✅ JSON-based config for consent and study metadata
-✅ Python scripts for database setup
-✅ DB connection test endpoint
+## Documentation Map
 
-## Quick Links
-
-- 📘 [Mac development setup](DEVELOPMENT.md)
-- 🚀 [AWS deployment guide](DEPLOYMENT.md)
-
-## Project Layout
-
-```
-userstudy2/
-├── .env                  Local secrets (NOT in git)
-├── .env.example          Template for .env
-├── /config/              JSON configs + PHP config
-├── /includes/            Shared PHP partials
-├── /scripts/             Python DB setup scripts
-├── /sql/                 Schema
-├── /resources/           Per-instructor video assets (gitignored)
-├── /chapters/fragments/  Comparison page fragments (Phase 3)
-├── /admin/               Admin panel (Phase 5)
-├── /assets/              CSS, JS, images
-├── index.php             Landing page
-├── login.php / logout.php
-├── register.php          4-step registration
-├── dashboard.php         User dashboard
-└── db_test.php           DB connection test (delete in production)
-```
-
-## Editable Config (No Code Required)
-
-| File | What you edit |
+| Document | Scope |
 |---|---|
-| `.env` | DB credentials, base URL, debug flag |
-| `config/consent.json` | Consent form text + version |
-| `config/study.json` | Study title, dimensions, scale, dates |
-| `config/resources.json` | Default file names |
+| [`docs/phase0-setup-deployment.md`](docs/phase0-setup-deployment.md) | Local Mac/MAMP setup, database setup, GitHub workflow, production migration, AWS/subfolder deployment, environment variables. |
+| [`docs/phase1-user-system.md`](docs/phase1-user-system.md) | Login, registration, pre-issued accounts, profile, course selection, admin user management, contact messages, email/reset-link flow. |
+| [`docs/phase2-resources.md`](docs/phase2-resources.md) | Course/video/segment resources, folder conventions, import scripts, database rows, dashboard display. |
+| [`docs/phase3-survey.md`](docs/phase3-survey.md) | Segment viewer, A/B summary comparison, questionnaire, save/submit behavior, response tables. |
 
-## Phases Roadmap
+## Current App Segments
 
-- ✅ **Phase 1** — Authentication
-- ⏳ **Phase 2** — Full dashboard with videos & segments
-- ⏳ **Phase 3** — Segment study page with A/B comparison
-- ⏳ **Phase 4** — AJAX submission, response storage
-- ⏳ **Phase 5** — Admin panel with CSV export
-- ⏳ **Phase 6** — Polish, edge cases, testing
+| Phase | Status | Main files |
+|---|---|---|
+| Phase 0 - setup and deployment | Active | `.env`, `app/config/config.php`, `scripts/db.py`, `app/sql/schema.sql` |
+| Phase 1 - user system | Active | `index.php`, `account/`, `contact.php`, `admin/` |
+| Phase 2 - resources and dashboard | Active | `resources/`, `scripts/sync_videos.py`, `dashboard.php`, resource helpers in `app/includes/functions.php` |
+| Phase 3 - survey and response capture | Active | `survey/viewer.php`, `survey/submit.php`, response tables in `app/sql/schema.sql` |
+
+## Quick Local Start
+
+1. Start MAMP.
+2. Configure `.env` for your local database, base URL, optional app URL, and optional email settings.
+3. Run the database setup:
+
+```bash
+# In scripts/db.py main(), set operation = "setup", then run:
+python scripts/db.py
+```
+
+4. Open:
+
+```text
+http://localhost:8888/userstudy2/
+```
+
+For the full setup, reset, GitHub, and deployment workflow, use [`docs/phase0-setup-deployment.md`](docs/phase0-setup-deployment.md).
+
+## Data and Secrets
+
+The `.env` file and `resources/` content are local/server data and should not be committed. Keep database credentials, Gmail app passwords, participant links, and raw study resources out of GitHub.

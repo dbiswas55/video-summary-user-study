@@ -8,10 +8,10 @@
  * REMOVE OR PASSWORD-PROTECT THIS FILE BEFORE GOING TO PRODUCTION.
  */
 
-require_once __DIR__ . '/includes/db.php';
-require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/../app/includes/db.php';
+require_once __DIR__ . '/../app/includes/functions.php';
 
-$config = require __DIR__ . '/config/config.php';
+$config = require __DIR__ . '/../app/config/config.php';
 
 header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -118,7 +118,7 @@ try {
 <div class="card">
   <h3>4. Users</h3>
   <?php if (empty($users)): ?>
-    <p class="muted">No users found. Run <code>python scripts/setup_db.py</code> first.</p>
+    <p class="muted">No users found. Set <code>operation = "setup"</code> in <code>scripts/db.py</code>, then run <code>python scripts/db.py</code>.</p>
   <?php else: ?>
     <table>
       <tr><th>Username</th><th>Type</th><th>Admin</th><th>Password set?</th></tr>
@@ -127,7 +127,7 @@ try {
           <td><code><?= e($u['username']) ?></code></td>
           <td><?= e($u['account_type']) ?></td>
           <td><?= $u['is_admin'] ? '✓' : '—' ?></td>
-          <td><?= !empty($u['password_hash']) ? '<span class="ok">✓ yes</span>' : '<span class="err">✗ run seed_passwords.py</span>' ?></td>
+          <td><?= !empty($u['password_hash']) ? '<span class="ok">✓ yes</span>' : '<span class="err">✗ set operation = &quot;default-users&quot; in db.py</span>' ?></td>
         </tr>
       <?php endforeach; ?>
     </table>
@@ -159,7 +159,7 @@ $jsonFiles = ['consent.json', 'study.json', 'resources.json'];
 <?php endif; ?>
 
 <div class="warn">
-  ⚠️ <strong>Security note:</strong> This file exposes config details. Delete <code>db_test.php</code> or restrict access before going to production.
+  ⚠️ <strong>Security note:</strong> This file exposes config details. Delete <code>tests/db_test.php</code> or restrict access before going to production.
 </div>
 
 <p class="muted" style="text-align:center; margin-top: 20px;">
