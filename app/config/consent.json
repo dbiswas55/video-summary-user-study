@@ -1,40 +1,49 @@
 {
   "version": "v1.0",
-  "last_updated": "2026-04-25",
-  "title": "Informed Consent for Research Participation",
-  "study_name": "Video Detailed Summary — Comparative Evaluation",
-  "principal_investigator": "[Your Name]",
+  "last_updated": "2026-04-28",
+  "display_mode": "pdf",
+  "title": "Consent Form",
+  "study_name": "VideoPoints User Study on Video Detailed Summary",
+  "principal_investigator": "Jaspal Subhlok",
   "institution": "University of Houston",
-  "irb_number": "[IRB-XXXX]",
+  "irb_number": "",
+  "research_team_contact": "jaspal@uh.edu or 713 743 3340",
+  "irb_contact": "(713) 743-9204 or cphs@central.uh.edu",
+  "pdf": {
+    "filename": "VideopointsHRP-502a-ConsentForm.pdf",
+    "intro": "Please review this Consent Form, which provides the relevant information about this survey. Then check the box below to confirm your agreement to participate.",
+    "open_label": "Open consent form PDF",
+    "agreement_label": "I have reviewed the consent form and agree to participate."
+  },
   "sections": [
     {
       "heading": "Purpose of the Study",
-      "text": "You are invited to participate in a research study evaluating the effectiveness of two different types of video summaries (transcript-only versus multimodal). The goal is to understand which summary format better supports student learning and review of lecture content."
+      "text": "You are invited to take part in a research study about AI enhanced lecture video usage in STEM coursework. The research evaluates the real-world effectiveness of AI enhancements in lecture videos and how students make use of these features."
     },
     {
       "heading": "Procedures",
-      "text": "If you agree to participate, you will be asked to: (1) review video segments from selected courses, (2) compare two versions of summaries for each segment, and (3) rate each summary on four dimensions (faithfulness, completeness, coherence, and usefulness) using a 1-10 scale. The study should take approximately 30-45 minutes per session."
+      "text": "If you agree to participate, you will be asked to complete an online survey about your usage and impressions of features in Videopoints. You may refuse to answer any question and may terminate the survey without giving a reason. The survey typically takes up to 10 minutes."
     },
     {
       "heading": "Risks and Discomforts",
-      "text": "There are no anticipated risks beyond those of normal computer use. You may experience minor eye strain or fatigue from screen time, similar to typical study activities."
+      "text": "The study team does not expect any risks related to the research activities. If you choose to take part and experience a negative event that you feel is related to the study, please contact the researcher or study team."
     },
     {
       "heading": "Benefits",
-      "text": "Your participation will help improve educational technology and contribute to research on automated video summarization. While you may not directly benefit from this study, your responses will help future students access better learning materials."
+      "text": "There is no direct benefit or compensation for participating. Possible benefits to others include an improved video driven learning experience for future students."
     },
     {
       "heading": "Confidentiality and Data Privacy",
-      "text": "Your responses are anonymous. Only your chosen username is stored — no email, name, or personal identifiers are required. All data is stored on a secure server and used only for research purposes. Aggregated results may be published in academic venues."
+      "text": "Taking part in this project is anonymous, and the information you provide cannot be linked to your identity. Because responses are anonymous, submitted survey data cannot be removed after submission."
     },
     {
-      "heading": "Voluntary Participation",
-      "text": "Your participation is entirely voluntary. You may withdraw at any time without penalty by simply closing the browser. You may also skip any question you prefer not to answer."
+      "heading": "Participation Choice",
+      "text": "Taking part is up to you. You can choose not to take part, agree to take part and later change your mind, and ask questions before deciding or at any time during the study. Your decision will not be held against you and will have no effect on your grades or standing with the University of Houston."
     },
     {
       "heading": "Contact Information",
-      "text": "If you have questions about this study, please contact [PI Name] at [email@example.com]. For questions about your rights as a research participant, contact the IRB at [IRB contact]."
+      "text": "For questions, concerns, or complaints, contact the research team at jaspal@uh.edu or 713 743 3340. For questions about your rights as a research participant, contact the University of Houston Institutional Review Board at (713) 743-9204 or cphs@central.uh.edu."
     }
   ],
-  "agreement_label": "I have read and understood the information above. I voluntarily agree to participate in this study."
+  "agreement_label": "I have reviewed the consent form and agree to participate."
 }

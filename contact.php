@@ -6,6 +6,7 @@ require_once __DIR__ . '/app/includes/mailer.php';
 startSessionIfNeeded();
 
 $pageTitle = 'Contact Admin — User Study';
+$pageStyles = ['assets/css/contact.css'];
 $loggedIn  = isLoggedIn();
 $user      = $loggedIn ? getCurrentUser() : null;
 $errors    = [];
@@ -75,11 +76,11 @@ include __DIR__ . '/app/includes/header.php';
 <div class="contact-wrapper">
   <div class="contact-card">
     <h1>Contact Admin</h1>
-    <p class="muted-meta">Have a question, need help, or want to leave feedback? Send a message to the study administrator.</p>
+    <p class="muted-meta">Have a question, need help, or want to leave feedback? Send a message to the administrator.</p>
 
     <?php if ($success): ?>
       <div class="alert alert-success">Your message has been sent. Thank you!</div>
-      <div class="form-actions" style="justify-content:flex-start; margin-top:0;">
+      <div class="form-actions contact-success-actions">
         <?php if ($loggedIn): ?>
           <a href="<?= baseUrl('dashboard.php') ?>" class="btn btn-secondary">← Back to Dashboard</a>
         <?php else: ?>

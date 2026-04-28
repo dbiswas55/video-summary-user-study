@@ -107,6 +107,8 @@ if (!empty($user['subject_id'])) {
 }
 
 $pageTitle   = 'My Profile — User Study';
+$pageStyles = ['assets/css/profile.css'];
+$pageScripts = ['assets/js/common.js'];
 include __DIR__ . '/../app/includes/header.php';
 ?>
 
@@ -204,13 +206,5 @@ include __DIR__ . '/../app/includes/header.php';
   </section>
 
 </div>
-
-<script>
-function togglePw(id, btn) {
-  var el = document.getElementById(id);
-  if (el.type === 'password') { el.type = 'text'; btn.textContent = 'Hide'; }
-  else                        { el.type = 'password'; btn.textContent = 'Show'; }
-}
-</script>
 
 <?php include __DIR__ . '/../app/includes/footer.php'; ?>

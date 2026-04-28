@@ -17,8 +17,8 @@ from _db_common import PROJECT_ROOT, get_config, connect, split_sql_statements
 SEED_USERS = [
     {
         "username": "admin",
-        "email": "admin@study.local",
-        "password": "admin123",
+        "email": "admin@example.com",
+        "password": "admin@123",
         "subject_id": None,
         "account_type": "pre_issued",
         "consent_given": True,
@@ -28,8 +28,8 @@ SEED_USERS = [
     },
     {
         "username": "testuser",
-        "email": "testuser@study.local",
-        "password": "testpass123",
+        "email": "testuser@example.com",
+        "password": "test1",
         "subject_id": 1,
         "account_type": "pre_issued",
         "consent_given": True,
@@ -247,7 +247,7 @@ def main():
                                 # refresh admin/test passwords without touching tables.
     # operation = "reset"       # DEV ONLY. Drop DB_NAME, recreate schema, then seed
                                 # users. This deletes all existing study data.
-    operation = None            # Keep this active when you do not want any DB change.
+    operation = "default-users"            # Keep this active when you do not want any DB change.
 
     if operation == "setup":
         setup_database()

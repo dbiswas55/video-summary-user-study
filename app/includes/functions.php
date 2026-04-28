@@ -26,6 +26,14 @@ function baseUrl($path = '') {
     return $config['base_url'] . ltrim($path, '/');
 }
 
+function assetUrl($path) {
+    $path = ltrim($path, '/');
+    $fullPath = __DIR__ . '/../../' . $path;
+    $version = file_exists($fullPath) ? filemtime($fullPath) : time();
+    $separator = strpos($path, '?') === false ? '?' : '&';
+    return baseUrl($path . $separator . 'v=' . $version);
+}
+
 function absoluteUrl($path = '') {
     $config = require __DIR__ . '/../config/config.php';
     $appUrl = trim($config['app_url'] ?? '');

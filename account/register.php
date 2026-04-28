@@ -10,7 +10,15 @@ if (isLoggedIn()) {
 }
 
 $pageTitle = 'Register — User Study';
+$pageStyles = ['assets/css/register.css'];
+$pageScripts = ['assets/js/register.js'];
 $consent  = loadJsonConfig('consent.json');
+$consentDisplayMode = $consent['display_mode'] ?? 'text';
+$usePdfConsent = $consentDisplayMode === 'pdf' && !empty($consent['pdf']['filename']);
+$consentAgreementLabel = $usePdfConsent
+    ? ($consent['pdf']['agreement_label'] ?? 'I agree to participate in this survey')
+    : ($consent['agreement_label'] ?? 'I agree to participate in this survey.');
+$consentPdfUrl = baseUrl('account/consent_pdf.php');
 $subjects = getSubjects();
 $errors = [];
 $step = (int)($_POST['step'] ?? $_GET['step'] ?? 1);
@@ -174,21 +182,38 @@ include __DIR__ . '/../app/includes/header.php';
     <?php endif; ?>
 
     <?php if ($step === 1): ?>
-      <h2><?= e($consent['title']) ?></h2>
-      <p class="muted-meta">Study: <?= e($consent['study_name']) ?> · Version <?= e($consent['version']) ?></p>
-
-      <div class="consent-content">
-        <?php foreach ($consent['sections'] as $sec): ?>
-          <h3><?= e($sec['heading']) ?></h3>
-          <p><?= e($sec['text']) ?></p>
-        <?php endforeach; ?>
+      <div class="consent-heading">
+        <h2>
+          <span><?= e($consent['title']) ?></span>
+          <span class="heading-separator">-</span>
+          <span><?= e($consent['study_name']) ?></span>
+        </h2>
       </div>
+
+      <?php if ($usePdfConsent): ?>
+        <div class="consent-pdf-panel">
+          <p><?= e($consent['pdf']['intro'] ?? 'Please review the consent form before continuing.') ?></p>
+          <div class="consent-pdf-frame">
+            <iframe src="<?= e($consentPdfUrl) ?>" title="Consent form PDF"></iframe>
+          </div>
+          <a href="<?= e($consentPdfUrl) ?>" class="pdf-link" target="_blank" rel="noopener">
+            <?= e($consent['pdf']['open_label'] ?? 'Open consent form PDF') ?>
+          </a>
+        </div>
+      <?php else: ?>
+        <div class="consent-content">
+          <?php foreach ($consent['sections'] as $sec): ?>
+            <h3><?= e($sec['heading']) ?></h3>
+            <p><?= e($sec['text']) ?></p>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
 
       <form method="POST" class="auth-form">
         <input type="hidden" name="step" value="1">
         <label class="checkbox-row">
           <input type="checkbox" name="consent_agreed" required>
-          <span><?= e($consent['agreement_label']) ?></span>
+          <span><?= e($consentAgreementLabel) ?></span>
         </label>
         <div class="form-actions">
           <a href="<?= baseUrl('index.php') ?>" class="btn btn-secondary">Cancel</a>
@@ -226,16 +251,6 @@ include __DIR__ . '/../app/includes/header.php';
           <button type="submit" class="btn btn-primary">Continue →</button>
         </div>
       </form>
-      <script>
-      document.getElementById('registerForm').addEventListener('submit', function(e) {
-        var pw = document.getElementById('regPassword').value;
-        var cn = document.getElementById('regConfirm').value;
-        if (pw.length < 4) { alert('Password must be at least 4 characters.'); e.preventDefault(); return; }
-        if (!/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) { alert('Password must contain at least one letter and one number.'); e.preventDefault(); return; }
-        if (pw !== cn) { alert('Passwords do not match.'); e.preventDefault(); }
-      });
-      </script>
-
     <?php elseif ($step === 3): ?>
       <h2>Select Your Subject Area</h2>
       <p class="muted-meta">Choose one subject. This will determine which courses you can select next.</p>

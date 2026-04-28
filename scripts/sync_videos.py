@@ -7,26 +7,14 @@ database, and reports what is new, in-sync, or stale. Can add new videos or
 delete existing ones.
 
 Usage (run from the project root):
-    python scripts/sync_videos.py                          # status report only
-    python scripts/sync_videos.py --add                    # add all new folders
-    python scripts/sync_videos.py --delete-stale           # remove DB rows with no folder
-    python scripts/sync_videos.py --delete-id 9230 9232    # remove specific videos
-    python scripts/sync_videos.py --add --delete-stale --yes  # non-interactive
-
-Options:
-    --add              Import every resource folder not yet in the database
-    --delete-stale     Delete DB records for videos whose resource folder is missing
-    --delete-id ID…    Delete one or more videos by their real integer video_id
-    --dry-run          Show what would happen without touching the database
-    --yes              Skip all confirmation prompts (auto-confirm)
-    --resources ROOT   Override the resources root path (default: project/resources/)
+    Edit main() at the bottom of this file, choose one operation, then run:
+        python scripts/sync_videos.py
 """
 
 import sys
 import json
 import re
 import random
-import argparse
 from pathlib import Path
 
 # ── Ensure scripts/ is on path so _db_common works when called from project root ─
@@ -245,7 +233,7 @@ def delete_video(video_id: int, db_row: dict, cursor, dry_run: bool) -> bool:
 
 def confirm(prompt: str, auto_yes: bool) -> bool:
     if auto_yes:
-        print(f"  {prompt} → yes (--yes)")
+        print(f"  {prompt} → yes (auto_confirm)")
         return True
     reply = input(f"  {prompt} [y/N]: ").strip().lower()
     return reply in ("y", "yes")
@@ -256,27 +244,44 @@ def confirm(prompt: str, auto_yes: bool) -> bool:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Sync videos/segments DB with the resources filesystem.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__,
-    )
-    parser.add_argument("--add",           action="store_true",
-                        help="Import all resource folders not yet in the DB")
-    parser.add_argument("--delete-stale",  action="store_true",
-                        help="Delete DB records for videos with no resource folder")
-    parser.add_argument("--delete-id",     metavar="VIDEO_ID", nargs="+", type=int,
-                        help="Delete specific video(s) by real integer video_id")
-    parser.add_argument("--dry-run",       action="store_true",
-                        help="Show what would happen without touching the DB")
-    parser.add_argument("--yes",           action="store_true",
-                        help="Skip confirmation prompts")
-    parser.add_argument("--resources",     metavar="PATH", default=None,
-                        help="Override resources root path")
-    args = parser.parse_args()
+    # Choose exactly ONE operation by uncommenting one line below.
+    #
+    # operation = "report"        # Show folders in sync, new folders, and stale DB rows.
+    # operation = "add"           # Import every resource folder not yet in the DB.
+    # operation = "delete-stale"  # Delete DB rows whose resource folder is missing.
+    # operation = "delete-by-id"  # Delete only video IDs listed in delete_video_ids.
+    operation = "add"             # Keep this active when you do not want DB access.
 
-    resources_root = Path(args.resources) if args.resources else PROJECT_ROOT / "resources"
-    dry_run = args.dry_run
+    # Used only when operation = "delete-by-id".
+    # These are real videos.video_id values, not internal videos.id values.
+    delete_video_ids = []
+
+    # Safety switch for write operations.
+    # - True prints what would happen without changing the database.
+    # - False allows inserts/deletes after confirmation.
+    dry_run = False
+
+    # Confirmation switch for write operations.
+    # - False asks before adding/deleting.
+    # - True skips prompts. Use only for trusted local/dev runs.
+    auto_confirm = False
+
+    # Optional resource root override.
+    # - None means PROJECT_ROOT/resources.
+    # - Example: resources_root_override = "/path/to/resources"
+    resources_root_override = None
+
+    if operation is None:
+        print("No video-sync operation selected.")
+        print("Edit scripts/sync_videos.py main(), uncomment one operation, then run:")
+        print("  python scripts/sync_videos.py")
+        return
+
+    resources_root = (
+        Path(resources_root_override)
+        if resources_root_override
+        else PROJECT_ROOT / "resources"
+    )
 
     # ── Connect ────────────────────────────────────────────────────────────────
     try:
@@ -332,24 +337,23 @@ def main():
 
     print()
 
-    # If no action flags, stop here
-    if not args.add and not args.delete_stale and not args.delete_id:
-        print("No action flags given. Use --add, --delete-stale, or --delete-id.\n")
+    # Read-only report stops here.
+    if operation == "report":
         cursor.close(); conn.close()
         return
 
     changed = False
 
     # ── ADD ────────────────────────────────────────────────────────────────────
-    if args.add:
+    if operation == "add":
         if not new_on_disk:
-            print("--add: Nothing new to import.\n")
+            print("add: Nothing new to import.\n")
         else:
             action = "Would add" if dry_run else "Adding"
             print(f"{'─'*60}")
             print(f"{action} {len(new_on_disk)} video(s):")
             if not confirm(f"Proceed to {'(dry-run) ' if dry_run else ''}add {len(new_on_disk)} video(s)?",
-                           args.yes):
+                           auto_confirm):
                 print("  Skipped.\n")
             else:
                 for inst_id, vid_id in new_on_disk:
@@ -360,9 +364,9 @@ def main():
                 print()
 
     # ── DELETE STALE ──────────────────────────────────────────────────────────
-    if args.delete_stale:
+    elif operation == "delete-stale":
         if not stale_in_db:
-            print("--delete-stale: No stale records found.\n")
+            print("delete-stale: No stale records found.\n")
         else:
             print(f"{'─'*60}")
             print(f"Stale records to delete ({len(stale_in_db)}):")
@@ -372,7 +376,7 @@ def main():
             print()
             print("  ⚠  This will permanently delete these videos, their segments,")
             print("     and ALL associated participant responses.")
-            if not confirm(f"Delete {len(stale_in_db)} stale video(s)?", args.yes):
+            if not confirm(f"Delete {len(stale_in_db)} stale video(s)?", auto_confirm):
                 print("  Skipped.\n")
             else:
                 for vid_id, row in stale_in_db.items():
@@ -383,17 +387,19 @@ def main():
                 print()
 
     # ── DELETE BY ID ──────────────────────────────────────────────────────────
-    if args.delete_id:
+    elif operation == "delete-by-id":
         to_delete = []
-        for vid_id in args.delete_id:
+        for vid_id in delete_video_ids:
             if vid_id not in db_map:
                 print(f"  ✗  video_id={vid_id} not found in database — skipping")
             else:
                 to_delete.append(vid_id)
 
-        if to_delete:
+        if not delete_video_ids:
+            print("delete-by-id: delete_video_ids is empty. Nothing to delete.\n")
+        elif to_delete:
             print(f"{'─'*60}")
-            print(f"Videos to delete by --delete-id ({len(to_delete)}):")
+            print(f"Videos to delete by ID ({len(to_delete)}):")
             for vid_id in to_delete:
                 row = db_map[vid_id]
                 folder_exists = vid_id in disk_set
@@ -403,7 +409,7 @@ def main():
             print()
             print("  ⚠  This will permanently delete these videos, their segments,")
             print("     and ALL associated participant responses.")
-            if not confirm(f"Delete {len(to_delete)} video(s)?", args.yes):
+            if not confirm(f"Delete {len(to_delete)} video(s)?", auto_confirm):
                 print("  Skipped.\n")
             else:
                 for vid_id in to_delete:
@@ -412,6 +418,9 @@ def main():
                     if ok and not dry_run:
                         changed = True
                 print()
+    else:
+        print(f"Unknown operation: {operation!r}")
+        print('Use "report", "add", "delete-stale", "delete-by-id", or None.\n')
 
     # ── Commit & close ────────────────────────────────────────────────────────
     if changed:

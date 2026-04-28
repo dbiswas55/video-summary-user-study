@@ -11,5 +11,9 @@
   </div>
 </footer>
 
+<?php foreach ((array)($pageScripts ?? []) as $script): ?>
+<script src="<?= assetUrl($script) ?>"></script>
+<?php endforeach; ?>
+
 </body>
 </html>

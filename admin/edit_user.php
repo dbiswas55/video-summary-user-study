@@ -109,6 +109,8 @@ $auto_login_url = $user['login_token']
     : '';
 
 $pageTitle = 'Edit User: ' . $user['username'];
+$pageStyles = ['assets/css/admin.css'];
+$pageScripts = ['assets/js/admin-edit-user.js'];
 include __DIR__ . '/../app/includes/header.php';
 ?>
 
@@ -126,7 +128,7 @@ include __DIR__ . '/../app/includes/header.php';
     <h2><?= e($user['username']) ?></h2>
     <table class="admin-table">
       <tbody>
-        <tr><th style="width:160px;">User ID</th><td><?= e($user['id']) ?></td></tr>
+        <tr><th class="admin-id-heading">User ID</th><td><?= e($user['id']) ?></td></tr>
         <tr><th>Username</th><td><strong><?= e($user['username']) ?></strong></td></tr>
         <tr><th>Email</th><td><?= e($user['email'] ?? '—') ?></td></tr>
         <tr><th>Account Type</th><td><span class="type-badge"><?= e($user['account_type']) ?></span></td></tr>
@@ -144,9 +146,9 @@ include __DIR__ . '/../app/includes/header.php';
     <form method="POST">
       <input type="hidden" name="action" value="update_courses">
 
-      <label style="display:block; margin-bottom:14px;">
-        <span style="font-weight:600; display:block; margin-bottom:6px;">Subject</span>
-        <select name="subject_id" onchange="this.form.submit()" style="padding:8px 12px; border-radius:6px; border:1px solid #c7c7cc; min-width:280px;">
+      <label class="admin-field">
+        <span class="admin-field-label">Subject</span>
+        <select name="subject_id" onchange="this.form.submit()" class="admin-select">
           <option value="0">— No subject —</option>
           <?php foreach ($subjects as $sub): ?>
             <option value="<?= e($sub['id']) ?>" <?= $user['subject_id'] == $sub['id'] ? 'selected' : '' ?>>
@@ -157,8 +159,8 @@ include __DIR__ . '/../app/includes/header.php';
       </label>
 
       <?php if ($user['subject_id'] && $courses): ?>
-        <div style="font-weight:600; margin-bottom:8px;">Enrolled Courses</div>
-        <div class="course-list" style="margin-bottom:14px;">
+        <div class="admin-field-label">Enrolled Courses</div>
+        <div class="course-list admin-course-list">
           <?php foreach ($courses as $c): ?>
             <label class="course-option">
               <input type="checkbox" name="course_ids[]" value="<?= e($c['id']) ?>"
@@ -192,36 +194,24 @@ include __DIR__ . '/../app/includes/header.php';
     </p>
 
     <?php if ($auto_login_url): ?>
-      <div style="display:flex; gap:8px; align-items:center; margin:12px 0;">
+      <div class="admin-token-row">
         <input type="text" id="loginLinkInput" value="<?= e($auto_login_url) ?>" readonly
-               style="flex:1; padding:8px 12px; border:1px solid #c7c7cc; border-radius:6px; font-family:monospace; font-size:0.85rem; background:#f5f5f7;">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="copyLoginLink()">Copy</button>
+               class="admin-token-input">
+        <button type="button" class="btn btn-secondary btn-sm" id="copyLoginLinkBtn" onclick="copyLoginLink()">Copy</button>
       </div>
-      <script>
-      function copyLoginLink() {
-        const el = document.getElementById('loginLinkInput');
-        el.select(); el.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(el.value).then(() => {
-          const btn = event.target;
-          const orig = btn.textContent;
-          btn.textContent = '✓ Copied';
-          setTimeout(() => btn.textContent = orig, 1400);
-        });
-      }
-      </script>
     <?php else: ?>
       <p class="muted-meta">No login link has been generated yet.</p>
     <?php endif; ?>
 
-    <div style="display:flex; gap:8px;">
-      <form method="POST" style="display:inline;">
+    <div class="admin-inline-actions">
+      <form method="POST" class="admin-inline-form">
         <input type="hidden" name="action" value="regenerate_token">
         <button type="submit" class="btn btn-primary btn-sm">
           <?= $auto_login_url ? 'Regenerate Link' : 'Generate Link' ?>
         </button>
       </form>
       <?php if ($auto_login_url): ?>
-      <form method="POST" style="display:inline;"
+      <form method="POST" class="admin-inline-form"
             onsubmit="return confirm('Revoke the current one-click access link? The user will no longer be able to use it.');">
         <input type="hidden" name="action" value="revoke_token">
         <button type="submit" class="btn btn-secondary btn-sm">Revoke Link</button>

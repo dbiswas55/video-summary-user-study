@@ -1,0 +1,20 @@
+/* Contact page */
+
+.contact-wrapper { max-width: 600px; margin: 32px auto; }
+.contact-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 36px 32px; box-shadow: var(--shadow-lg);
+}
+.contact-card h1 { font-size: 1.5rem; margin-bottom: 6px; }
+.contact-card .muted-meta { margin-bottom: 24px; }
+.contact-sender-info {
+  background: var(--accent-light); color: var(--accent);
+  padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.9rem;
+}
+.auth-form textarea {
+  padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 0.95rem; background: var(--bg);
+  resize: vertical; transition: all 0.15s; width: 100%;
+}
+.auth-form textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
+.contact-success-actions { justify-content: flex-start; margin-top: 0; }

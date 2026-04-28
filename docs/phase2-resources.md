@@ -74,16 +74,14 @@ The script warns when expected files are missing. Missing files can make the vie
 Use `scripts/sync_videos.py` when resource folders and database rows need to be compared or updated:
 
 ```bash
+# In scripts/sync_videos.py main(), choose operation = "report", "add",
+# "delete-stale", or "delete-by-id", then run:
 python scripts/sync_videos.py
-python scripts/sync_videos.py --add
-python scripts/sync_videos.py --dry-run --add
-python scripts/sync_videos.py --delete-id 9230
-python scripts/sync_videos.py --delete-stale
 ```
 
-Delete operations remove videos, segments, progress, and responses for those segments. Use `--dry-run` first and back up the database before deleting production data.
+Delete operations remove videos, segments, progress, and responses for those segments. Use `dry_run = True` first and back up the database before deleting production data.
 
-`sync_videos.py --add` is the only Phase 2 import path. It scans `resources/i{instructor_id}/v{video_id}/`, reads each folder's `metadata.json`, looks up the matching course by `courses.instructor_id`, inserts `videos` and `segments` rows, and randomly assigns `segments.version_assignment`.
+`sync_videos.py` with `operation = "add"` is the only Phase 2 import path. It scans `resources/i{instructor_id}/v{video_id}/`, reads each folder's `metadata.json`, looks up the matching course by `courses.instructor_id`, inserts `videos` and `segments` rows, and randomly assigns `segments.version_assignment`.
 
 ## Version Assignment
 

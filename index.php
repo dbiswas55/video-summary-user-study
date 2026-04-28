@@ -8,6 +8,11 @@ if (isLoggedIn()) {
 }
 
 $pageTitle = 'Video Summary Evaluation';
+$pageStyles = ['assets/css/auth.css'];
+$pageScripts = [
+    'assets/js/common.js',
+    'assets/js/auth.js',
+];
 $activeTab = $_GET['tab'] ?? 'login';
 
 startSessionIfNeeded();
@@ -27,15 +32,15 @@ include __DIR__ . '/app/includes/header.php';
     </div>
 
     <div class="tabs">
-      <button class="tab <?= $activeTab === 'login' ? 'active' : '' ?>" onclick="switchTab('login')">Sign In</button>
-      <button class="tab <?= $activeTab === 'register' ? 'active' : '' ?>" onclick="switchTab('register')">Register</button>
+      <button class="tab <?= $activeTab === 'login' ? 'active' : '' ?>" data-tab="login" onclick="switchTab('login')">Sign In</button>
+      <button class="tab <?= $activeTab === 'register' ? 'active' : '' ?>" data-tab="register" onclick="switchTab('register')">Register</button>
     </div>
 
     <div id="loginPanel" class="tab-panel <?= $activeTab === 'login' ? 'active' : '' ?>">
       <?php if ($loginError): ?>
         <div class="alert alert-error"><?= e($loginError) ?></div>
       <?php endif; ?>
-      <p class="auth-hint" style="margin-bottom:14px;">
+      <p class="auth-hint auth-hint-spaced">
         Sign in with your username or email and password.
         Pre-issued accounts without a password may use username and email.
       </p>
@@ -55,7 +60,7 @@ include __DIR__ . '/app/includes/header.php';
             <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)" tabindex="-1">Show</button>
           </div>
         </label>
-        <p class="auth-hint" id="loginHint" style="min-height:1.4em;"></p>
+        <p class="auth-hint login-hint" id="loginHint"></p>
         <button type="submit" class="btn btn-primary">Sign In</button>
       </form>
       <p class="auth-hint">Don't have an account? <a href="?tab=register" onclick="event.preventDefault(); switchTab('register')">Register here</a></p>
@@ -79,63 +84,5 @@ include __DIR__ . '/app/includes/header.php';
     </div>
   </div>
 </div>
-
-<script>
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelector(`.tab[onclick*="${name}"]`).classList.add('active');
-  document.getElementById(name + 'Panel').classList.add('active');
-  history.replaceState(null, '', '?tab=' + name);
-}
-
-function togglePw(id, btn) {
-  var el = document.getElementById(id);
-  if (el.type === 'password') { el.type = 'text'; btn.textContent = 'Hide'; }
-  else                        { el.type = 'password'; btn.textContent = 'Show'; }
-}
-
-function toggleResetForm() {
-  var form = document.getElementById('resetForm');
-  if (!form) return;
-  form.classList.toggle('open');
-  if (form.classList.contains('open')) {
-    var input = form.querySelector('input[name="reset_email"]');
-    if (input) input.focus();
-  }
-}
-
-(function() {
-  var u = document.getElementById('loginUsername');
-  var e = document.getElementById('loginEmail');
-  var p = document.getElementById('loginPassword');
-  var hint = document.getElementById('loginHint');
-  var form = document.getElementById('loginForm');
-  if (!form) return;
-
-  function updateHint() {
-    var hu = u.value.trim() !== '', he = e.value.trim() !== '', hp = p.value !== '';
-    var count = (hu ? 1 : 0) + (he ? 1 : 0) + (hp ? 1 : 0);
-    if (count === 0) { hint.textContent = ''; return; }
-    if (hp && (hu || he)) { hint.textContent = ''; return; }
-    if (!hp && hu && he) {
-      hint.textContent = 'Passwordless sign-in is only for pre-issued accounts without a password.';
-      return;
-    }
-    hint.textContent = 'Enter a username or email plus password.';
-  }
-  [u, e, p].forEach(function(el) { el.addEventListener('input', updateHint); });
-
-  form.addEventListener('submit', function(ev) {
-    var hu = u.value.trim() !== '', he = e.value.trim() !== '', hp = p.value !== '';
-    var standardLogin = hp && (hu || he);
-    var preissuedLogin = !hp && hu && he;
-    if (!standardLogin && !preissuedLogin) {
-      ev.preventDefault();
-      hint.textContent = 'Enter a username or email plus password. Pre-issued accounts without a password may use username and email.';
-    }
-  });
-})();
-</script>
 
 <?php include __DIR__ . '/app/includes/footer.php'; ?>

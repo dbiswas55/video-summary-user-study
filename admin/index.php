@@ -5,6 +5,7 @@ require_once __DIR__ . '/../app/includes/functions.php';
 requireAdmin();
 
 $pageTitle = 'Admin Dashboard — User Study';
+$pageStyles = ['assets/css/admin.css'];
 $pdo = getDb();
 
 $totalUsers    = (int)$pdo->query('SELECT COUNT(*) FROM users WHERE is_admin = FALSE')->fetchColumn();

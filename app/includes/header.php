@@ -4,6 +4,7 @@ $config = require __DIR__ . '/../config/config.php';
 $study  = loadJsonConfig('study.json');
 $headerUser = isLoggedIn() ? getCurrentUser() : null;
 $flash  = getFlash();
+$pageStyles = $pageStyles ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,7 +13,10 @@ $flash  = getFlash();
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle ?? $study['study_title']) ?></title>
 <link rel="icon" href="<?= baseUrl('assets/favicon.svg') ?>" type="image/svg+xml">
-<link rel="stylesheet" href="<?= baseUrl('assets/css/main.css') ?>">
+<link rel="stylesheet" href="<?= assetUrl('assets/css/main.css') ?>">
+<?php foreach ((array)$pageStyles as $style): ?>
+<link rel="stylesheet" href="<?= assetUrl($style) ?>">
+<?php endforeach; ?>
 </head>
 <body>
 
