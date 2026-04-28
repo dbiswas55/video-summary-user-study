@@ -19,6 +19,18 @@
 .db2-wrap { display: flex; flex-direction: column; gap: 28px; }
 .dashboard-empty { margin-top: 8px; }
 
+.db2-course-note {
+  align-self: center;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  color: #9a3412;
+  font-size: 0.94rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  text-align: center;
+}
+
 .db2-welcome {
   background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 28px 32px; box-shadow: var(--shadow);

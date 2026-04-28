@@ -37,9 +37,35 @@ $real_video_id = (int)$seg_row['video_id'];
 $viewer_url    = baseUrl('survey/viewer.php?vid=' . $real_video_id);
 
 $action     = ($_POST['action'] ?? 'submit') === 'save_later' ? 'save_later' : 'submit';
-$dimensions = ['faithfulness', 'completeness', 'coherence', 'usefulness'];
-$valid_fam  = ['not_familiar', 'somewhat', 'familiar', 'very_familiar'];
+$study      = loadJsonConfig('study.json');
+$dimensions = [];
+foreach (($study['dimensions'] ?? []) as $dim) {
+    $id = (string)($dim['id'] ?? '');
+    if (preg_match('/^[a-z_]+$/', $id)) {
+        $dimensions[] = $id;
+    }
+}
+$valid_fam = [];
+foreach (($study['familiarity_options'] ?? []) as $option) {
+    $id = (string)($option['id'] ?? '');
+    if (preg_match('/^[a-z_]+$/', $id)) {
+        $valid_fam[] = $id;
+    }
+}
+$rating_scale = $study['rating_scale'] ?? [];
+$rating_min = (int)($rating_scale['min'] ?? 1);
+$rating_max = (int)($rating_scale['max'] ?? 10);
+if ($rating_min < 1 || $rating_max > 10 || $rating_min >= $rating_max) {
+    $rating_min = 1;
+    $rating_max = 10;
+}
 $errors     = [];
+
+if (!$dimensions || !$valid_fam) {
+    setFlash('error', 'Survey questions are not configured.');
+    header('Location: ' . $viewer_url);
+    exit;
+}
 
 // ── Parse familiarity ─────────────────────────────────────────────────────────
 $familiarity = $_POST['familiarity'] ?? '';
@@ -56,11 +82,11 @@ $rating_count = 0;
 foreach ($dimensions as $dim) {
     foreach (['A', 'B'] as $ver) {
         $val = (int)($raw_ratings[$dim][$ver] ?? 0);
-        if ($val >= 1 && $val <= 10) {
+        if ($val >= $rating_min && $val <= $rating_max) {
             $ratings[$dim][$ver] = $val;
             $rating_count++;
         } elseif ($action === 'submit') {
-            $errors[] = "Rating for {$dim} Version {$ver} is required (1–10).";
+            $errors[] = "Rating for {$dim} Version {$ver} is required ({$rating_min}–{$rating_max}).";
         }
     }
 }
@@ -71,11 +97,12 @@ if ($errors) {
     exit;
 }
 
-// Determine target status from how many of the 9 questions were answered
+// Determine target status from how many configured questions were answered
+$required_count = 1 + (count($dimensions) * 2);
 $answered_count = ($has_familiarity ? 1 : 0) + $rating_count;
 if ($answered_count === 0) {
     $new_status = 'not_started';
-} elseif ($answered_count < 9) {
+} elseif ($answered_count < $required_count) {
     $new_status = 'in_progress';
 } else {
     $new_status = 'completed';

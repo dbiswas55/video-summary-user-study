@@ -8,38 +8,40 @@
   "rating_scale": {
     "min": 1,
     "max": 10,
-    "low_label": "Not at all",
-    "high_label": "Highly"
+    "scale_label": "Scale",
+    "low_label": "Poor",
+    "connector": "→",
+    "high_label": "Excellent"
   },
 
   "dimensions": [
     {
       "id": "faithfulness",
       "label": "Faithfulness",
-      "question": "How well does this summary reflect what was actually covered in the video segment?"
+      "question": "How faithful is each summary to the video chapter content?"
     },
     {
       "id": "completeness",
       "label": "Completeness",
-      "question": "How completely does this summary capture the key concepts from the video segment?"
+      "question": "How completely does each summary capture the main concepts of the video chapter?"
     },
     {
       "id": "coherence",
       "label": "Coherence",
-      "question": "How well does this summary present its ideas in a clear, logical, and organized way?"
+      "question": "How coherent and logically organized is each summary?"
     },
     {
       "id": "usefulness",
       "label": "Usefulness",
-      "question": "How useful is this summary as a review material for this video segment?"
+      "question": "How useful is each summary as educational review material?"
     }
   ],
 
   "familiarity_question": "How familiar are you with the topic covered in this video segment?",
   "familiarity_options": [
-    { "id": "not_familiar",  "label": "Not familiar at all" },
-    { "id": "somewhat",      "label": "Somewhat familiar" },
+    { "id": "not_familiar",  "label": "Not Familiar" },
+    { "id": "somewhat",      "label": "Somewhat Familiar" },
     { "id": "familiar",      "label": "Familiar" },
-    { "id": "very_familiar", "label": "Very familiar" }
+    { "id": "very_familiar", "label": "Very Familiar" }
   ]
 }

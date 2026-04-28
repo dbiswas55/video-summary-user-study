@@ -86,6 +86,10 @@ include __DIR__ . '/app/includes/header.php';
     <?php endif; ?>
   </div>
 
+  <div class="db2-course-note">
+    Please complete all segments of the course you are rating.
+  </div>
+
   <?php if (empty($courses)): ?>
     <div class="info-box dashboard-empty">
       <strong>No segments assigned yet.</strong>

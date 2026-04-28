@@ -9,6 +9,9 @@ const SEG_END = VIEWER_DATA.segEnd || 0;
 const PREV_FAMILIARITY = VIEWER_DATA.prevFamiliarity || '';
 const PREV_RATINGS = VIEWER_DATA.prevRatings || {};
 const PREV_COMMENTS = VIEWER_DATA.prevComments || {};
+const DIMENSIONS = VIEWER_DATA.dimensions || [];
+const RATING_SCALE = VIEWER_DATA.ratingScale || { min: 1, max: 10 };
+const QUESTION_TOTAL = VIEWER_DATA.questionTotal || (1 + DIMENSIONS.length * 2);
 const TIME_LABEL = VIEWER_DATA.timeLabel || '';
 
 // ── Transcript ────────────────────────────────────────────────────────────────
@@ -67,7 +70,7 @@ if (video) {
     if (video.currentTime > SEG_END)   video.currentTime = SEG_END;
   });
   video.addEventListener('play',  () => { document.getElementById('seg-play-btn').textContent = '⏸ Pause'; document.getElementById('seg-play-btn').classList.add('pausing'); });
-  video.addEventListener('pause', () => { document.getElementById('seg-play-btn').textContent = '▶ Play Segment'; document.getElementById('seg-play-btn').classList.remove('pausing'); });
+  video.addEventListener('pause', () => { document.getElementById('seg-play-btn').textContent = '▶ Play'; document.getElementById('seg-play-btn').classList.remove('pausing'); });
   video.addEventListener('loadedmetadata', () => setTimeout(syncTranscriptHeight, 50));
 }
 window.addEventListener('resize', syncTranscriptHeight);
@@ -85,13 +88,13 @@ function toggleRestrict() {
   const btn  = document.getElementById('seg-restrict-btn');
   const hint = document.getElementById('seg-hint');
   if (segmentRestricted) {
-    btn.classList.add('active'); btn.textContent = '■ Segment only';
-    hint.textContent = 'Restricted to ' + TIME_LABEL;
+    btn.classList.add('active'); btn.textContent = '■ Single Chapter Only';
+    hint.textContent = 'Playback limited to ' + TIME_LABEL;
     if (video && (video.currentTime < SEG_START || video.currentTime > SEG_END)) {
       video.pause(); video.currentTime = SEG_START;
     }
   } else {
-    btn.classList.remove('active'); btn.textContent = '□ Free play';
+    btn.classList.remove('active'); btn.textContent = '□ Full video';
     hint.textContent = 'Full video unlocked';
   }
 }
@@ -120,8 +123,7 @@ if (SLIDES.length > 0) {
     stripEl.appendChild(img);
   });
   document.getElementById('slide-footer').textContent =
-    SLIDES.length + ' slide' + (SLIDES.length !== 1 ? 's' : '') +
-    '  ·  scroll horizontally to browse  ·  click to zoom';
+    'Scroll horizontally to browse  ·  Click to zoom';
 } else {
   document.getElementById('slide-section').innerHTML =
     '<p style="color:#6e6e73;padding:16px 20px;">No slide images found.</p>';
@@ -172,15 +174,16 @@ function setView(mode) {
 renderNormal();
 
 // ── Questionnaire ─────────────────────────────────────────────────────────────
-const DIMS = ['faithfulness','completeness','coherence','usefulness'];
+const DIMS = DIMENSIONS.map(dim => dim.id);
 const ratings = {};
 let familiaritySelected = false;
 
-// Build 1–10 scale buttons for each dimension × version
+// Build rating scale buttons for each dimension × version
 DIMS.forEach(dim => {
   ['a','b'].forEach(ver => {
     const container = document.getElementById(dim + '-' + ver + '-btns');
-    for (let i = 1; i <= 10; i++) {
+    if (!container) return;
+    for (let i = RATING_SCALE.min; i <= RATING_SCALE.max; i++) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'scale-btn';
@@ -204,10 +207,13 @@ function selectRating(dim, ver, value, clickedBtn) {
   });
   // Update display label
   const display = document.getElementById(dim + '-' + ver + '-display');
-  display.textContent = value + '/10';
-  display.className = 'rating-display has-' + ver;
+  if (display) {
+    display.textContent = value + '/' + RATING_SCALE.max;
+    display.className = 'rating-display has-' + ver;
+  }
   // Update hidden input
-  document.getElementById(dim + '-' + ver + '-val').value = value;
+  const input = document.getElementById(dim + '-' + ver + '-val');
+  if (input) input.value = value;
   updateProgress();
 }
 
@@ -222,7 +228,7 @@ function selectFamiliarity(btn) {
 function updateProgress() {
   const answered = Object.keys(ratings).length + (familiaritySelected ? 1 : 0);
   document.getElementById('survey-progress').textContent =
-    answered + ' of 9 questions answered';
+    answered + ' of ' + QUESTION_TOTAL + ' questions answered';
   document.getElementById('save-later-btn').disabled = (answered === 0);
 }
 
@@ -236,6 +242,7 @@ DIMS.forEach(dim => {
     const prevVal = (PREV_RATINGS[dim] || {})[ver.toUpperCase()];
     if (prevVal) {
       const container = document.getElementById(dim + '-' + ver + '-btns');
+      if (!container) return;
       const btn = [...container.querySelectorAll('.scale-btn')].find(b => parseInt(b.textContent) === prevVal);
       if (btn) selectRating(dim, ver, prevVal, btn);
     }

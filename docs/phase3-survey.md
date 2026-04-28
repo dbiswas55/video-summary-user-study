@@ -8,6 +8,7 @@ This phase covers the participant study page, A/B summary comparison, questionna
 |---|---|
 | Viewer page | `survey/viewer.php` |
 | Submission handler | `survey/submit.php` |
+| Survey config | `app/config/study.json` |
 | Shared helpers | `app/includes/auth.php`, `app/includes/functions.php` |
 | Tables | `responses_familiarity`, `responses_ratings`, `responses_comments`, `user_segment_progress` |
 
@@ -27,6 +28,7 @@ survey/viewer.php?vid={video_id}
 - Transcript and summary text from the resource folder.
 - Slide images from `slides/`.
 - MP4 URL from `getVideoUrl()`.
+- Familiarity options, rating dimensions, and scale labels from `app/config/study.json`.
 - Previous responses for the current user and segment, so a partially saved survey can be resumed.
 
 ## Study Interface
@@ -47,6 +49,17 @@ The method behind Version A/B is hidden from participants. The mapping is stored
 
 ## Survey Questions
 
+The participant-facing wording is configured in `app/config/study.json`:
+
+| Config key | Use |
+|---|---|
+| `familiarity_question` | Q1 prompt. |
+| `familiarity_options` | Q1 option IDs and labels. |
+| `dimensions` | Rating dimension IDs, labels, and question text. |
+| `rating_scale` | Rating range and scale label text, for example `Scale: 1 = Poor → 10 = Excellent`. |
+
+Keep dimension IDs and familiarity option IDs stable unless the database schema is also changed, because those IDs are stored in response tables.
+
 The current structured response model has:
 
 | Question area | Stored in |
@@ -58,7 +71,7 @@ The current structured response model has:
 | Usefulness ratings for A and B | `responses_ratings` |
 | Optional free-text comments per dimension | `responses_comments` |
 
-Ratings are integers from 1 to 10. Each dimension has one rating for Version A and one for Version B.
+Ratings are currently integers from 1 to 10. Each dimension has one rating for Version A and one for Version B.
 
 ## Save and Submit Behavior
 
@@ -69,13 +82,13 @@ Two actions are supported:
 | Action | Behavior |
 |---|---|
 | `save_later` | Saves any provided answers, permits incomplete responses, and returns to the dashboard. |
-| `submit` | Requires familiarity plus all eight ratings, saves responses, marks progress completed, and returns to the dashboard. |
+| `submit` | Requires familiarity plus all configured dimension ratings for both versions, saves responses, marks progress completed, and returns to the dashboard. |
 
 The handler uses upserts, so returning to a segment and changing an answer updates the existing row instead of creating duplicates.
 
 ## Progress Logic
 
-Progress is derived from the number of answered structured questions:
+Progress is derived from the number of answered structured questions. With the current four dimensions, there are nine counted answers:
 
 | Answered count | Status |
 |---|---|

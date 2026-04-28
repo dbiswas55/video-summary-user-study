@@ -21,6 +21,59 @@ require_once __DIR__ . '/../app/includes/auth.php';
 requireLogin();
 
 $pdo = getDb();
+$study = loadJsonConfig('study.json');
+$raw_dimensions = $study['dimensions'] ?? [];
+$study_dimensions = [];
+foreach ($raw_dimensions as $dim) {
+    $id = (string)($dim['id'] ?? '');
+    if (!preg_match('/^[a-z_]+$/', $id)) {
+        continue;
+    }
+    $study_dimensions[] = [
+        'id' => $id,
+        'label' => (string)($dim['label'] ?? $id),
+        'question' => (string)($dim['question'] ?? ''),
+    ];
+}
+if (!$study_dimensions) {
+    http_response_code(500);
+    die('Survey dimensions are not configured.');
+}
+
+$raw_familiarity_options = $study['familiarity_options'] ?? [];
+$familiarity_options = [];
+foreach ($raw_familiarity_options as $option) {
+    $id = (string)($option['id'] ?? '');
+    if (!preg_match('/^[a-z_]+$/', $id)) {
+        continue;
+    }
+    $familiarity_options[] = [
+        'id' => $id,
+        'label' => (string)($option['label'] ?? $id),
+    ];
+}
+if (!$familiarity_options) {
+    http_response_code(500);
+    die('Familiarity options are not configured.');
+}
+
+$rating_scale = $study['rating_scale'] ?? [];
+$scale_min = (int)($rating_scale['min'] ?? 1);
+$scale_max = (int)($rating_scale['max'] ?? 10);
+if ($scale_min < 1 || $scale_max > 10 || $scale_min >= $scale_max) {
+    $scale_min = 1;
+    $scale_max = 10;
+}
+$scale_hint = sprintf(
+    '%s: %d = %s %s %d = %s',
+    $rating_scale['scale_label'] ?? 'Scale',
+    $scale_min,
+    $rating_scale['low_label'] ?? 'Poor',
+    $rating_scale['connector'] ?? '→',
+    $scale_max,
+    $rating_scale['high_label'] ?? 'Excellent'
+);
+$question_total = 1 + (count($study_dimensions) * 2);
 
 // ── Resolve video from ?vid= ──────────────────────────────────────────────────
 $raw_vid = $_GET['vid'] ?? '';
@@ -140,6 +193,12 @@ $js_video_url        = jsStr($video_url);
 $js_prev_familiarity = jsStr($prev_familiarity);
 $js_prev_ratings     = json_encode($prev_ratings, JSON_UNESCAPED_UNICODE);
 $js_prev_comments    = json_encode($prev_comments, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
+$js_dimensions       = json_encode($study_dimensions, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
+$js_rating_scale     = json_encode([
+    'min' => $scale_min,
+    'max' => $scale_max,
+], JSON_UNESCAPED_UNICODE);
+$js_question_total   = (int)$question_total;
 
 // ── Format helper ─────────────────────────────────────────────────────────────
 function fmtTime($secs) {
@@ -204,9 +263,9 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
       </div>
     </div>
     <div class="seg-controls">
-      <button class="seg-play-btn" id="seg-play-btn" onclick="jumpToSegment()">&#9654; Play Segment</button>
-      <button class="seg-restrict-btn active" id="seg-restrict-btn" onclick="toggleRestrict()">&#x25A0; Segment only</button>
-      <span class="seg-hint" id="seg-hint">Restricted to <?= e($time_label) ?></span>
+      <button class="seg-play-btn" id="seg-play-btn" onclick="jumpToSegment()">&#9654; Play </button>
+      <button class="seg-restrict-btn active" id="seg-restrict-btn" onclick="toggleRestrict()">&#x25A0; Single Chapter Only</button>
+      <span class="seg-hint" id="seg-hint">Playback limited to <?= e($time_label) ?></span>
     </div>
   </div>
 
@@ -223,10 +282,9 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
 <!-- ━━ 2. Slides ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <section class="slide-section" id="slide-section">
   <div class="section-label">
-    Slides &nbsp;&middot;&nbsp; indices <?= e($slide_range) ?>
-    &nbsp;&middot;&nbsp; <?= $slide_count ?> image<?= $slide_count !== 1 ? 's' : '' ?>
-    &nbsp;<span class="slide-help">— scroll to browse &middot; click to zoom</span>
-  </div>
+    Slides
+    &nbsp;&middot;&nbsp; <?= $slide_count ?> Video Frames (Slide<?= $slide_count !== 1 ? 's' : '' ?>)
+  </div>  
   <div class="slide-strip" id="slide-strip"></div>
   <div class="slide-footer" id="slide-footer"></div>
 </section>
@@ -241,7 +299,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
 </div>
 
 <!-- ━━ 3. Summary comparison ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<div>
+<section class="comparison-section">
   <div class="comparison-toolbar">
     <div class="section-label compact-label">Summary Comparison</div>
     <div class="view-toggle-row">
@@ -268,10 +326,10 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
       <div class="summary-body"><div class="md-content" id="summary-b"></div></div>
     </div>
   </div>
-</div>
+</section>
 
 <!-- ━━ 4. Questionnaire ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<div>
+<section class="questions-section">
   <div class="section-label questions-label">Evaluation Questions</div>
 
   <form id="qs-form" method="POST" action="<?= e(baseUrl('survey/submit.php')) ?>">
@@ -284,20 +342,15 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="qc-header">
           <span class="qc-num">Q1</span>
           <span class="qc-dim">Background</span>
-          <span class="qc-text">How familiar are you with the topic covered in this video segment?</span>
+          <span class="qc-text"><?= e($study['familiarity_question'] ?? 'How familiar are you with the topic covered in this video segment?') ?></span>
         </div>
         <div class="qc-body">
           <div class="choice-group">
-            <?php foreach ([
-              'not_familiar'  => 'Not familiar at all',
-              'somewhat'      => 'Somewhat familiar',
-              'familiar'      => 'Familiar',
-              'very_familiar' => 'Very familiar',
-            ] as $val => $label): ?>
+            <?php foreach ($familiarity_options as $option): ?>
             <button type="button" class="choice-btn"
-                    data-v="<?= e($val) ?>"
+                    data-v="<?= e($option['id']) ?>"
                     onclick="selectFamiliarity(this)">
-              <?= e($label) ?>
+              <?= e($option['label']) ?>
             </button>
             <?php endforeach; ?>
           </div>
@@ -307,17 +360,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
 
       <!-- Q2–Q5: One card per rating dimension -->
       <?php
-      $dims = [
-        ['id'=>'faithfulness','label'=>'Faithfulness',
-         'q'=>'How well does this summary reflect what was actually covered in the video segment?'],
-        ['id'=>'completeness','label'=>'Completeness',
-         'q'=>'How completely does this summary capture the key concepts from the video segment?'],
-        ['id'=>'coherence',   'label'=>'Coherence',
-         'q'=>'How well does this summary present its ideas in a clear, logical, and organized way?'],
-        ['id'=>'usefulness',  'label'=>'Usefulness',
-         'q'=>'How useful is this summary as review material for this video segment?'],
-      ];
-      foreach ($dims as $i => $dim):
+      foreach ($study_dimensions as $i => $dim):
         $qn = $i + 2;
         $did = $dim['id'];
       ?>
@@ -325,8 +368,8 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="qc-header">
           <span class="qc-num">Q<?= $qn ?></span>
           <span class="qc-dim"><?= e($dim['label']) ?></span>
-          <span class="qc-text"><?= e($dim['q']) ?></span>
-          <span class="qc-scale-hint"><b>1</b> not at all &middot; <b>10</b> highly</span>
+          <span class="qc-text"><?= e($dim['question']) ?></span>
+          <span class="qc-scale-hint"><?= e($scale_hint) ?></span>
         </div>
         <div class="qc-body">
           <!-- Version A -->
@@ -355,12 +398,12 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
 
     <input type="hidden" name="action" id="form-action" value="submit">
     <div class="survey-submit">
-      <span class="survey-progress" id="survey-progress">0 of 9 questions answered</span>
+      <span class="survey-progress" id="survey-progress">0 of <?= e($question_total) ?> questions answered</span>
       <button type="button" class="save-later-btn" id="save-later-btn" onclick="saveLater()" disabled>Save &amp; Finish Later</button>
       <button type="submit" class="survey-submit-btn" id="submit-btn">Submit Ratings →</button>
     </div>
   </form>
-</div>
+</section>
 
 </main>
 
@@ -375,6 +418,9 @@ window.SURVEY_VIEWER_DATA = {
   prevFamiliarity: <?= $js_prev_familiarity ?>,
   prevRatings: <?= $js_prev_ratings ?>,
   prevComments: <?= $js_prev_comments ?>,
+  dimensions: <?= $js_dimensions ?>,
+  ratingScale: <?= $js_rating_scale ?>,
+  questionTotal: <?= $js_question_total ?>,
   timeLabel: <?= jsStr($time_label) ?>
 };
 </script>
