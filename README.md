@@ -1,4 +1,4 @@
-# Video Detailed Summary - User Study 2
+# Video Detailed Summary - User Study
 
 PHP + MySQL web application for the VideoPoints comparative evaluation study. Participants sign in, choose courses in their subject area, view assigned lecture clips, compare two anonymized summary versions, and submit structured ratings for analysis.
 
@@ -8,7 +8,7 @@ Detailed documentation lives in [`docs/`](docs/). The root README is intentional
 
 | Document | Scope |
 |---|---|
-| [`docs/phase0-setup-deployment.md`](docs/phase0-setup-deployment.md) | Local Mac/MAMP setup, database setup, GitHub workflow, production migration, AWS/subfolder deployment, environment variables. |
+| [`docs/phase0-setup-deployment.md`](docs/phase0-setup-deployment.md) | Local Mac/MAMP setup, database setup, GitHub workflow, standalone AWS/Windows subfolder deployment, environment variables. |
 | [`docs/phase1-user-system.md`](docs/phase1-user-system.md) | Login, registration, pre-issued accounts, profile, course selection, admin user management, contact messages, email/reset-link flow. |
 | [`docs/phase2-resources.md`](docs/phase2-resources.md) | Course/video/segment resources, folder conventions, import scripts, database rows, dashboard display. |
 | [`docs/phase3-survey.md`](docs/phase3-survey.md) | Segment viewer, A/B summary comparison, questionnaire, save/submit behavior, response tables. |
@@ -36,10 +36,20 @@ python scripts/db.py
 4. Open:
 
 ```text
-http://localhost:8888/userstudy2/
+http://localhost:8888/userstudy2/index.php
 ```
 
 For the full setup, reset, GitHub, and deployment workflow, use [`docs/phase0-setup-deployment.md`](docs/phase0-setup-deployment.md).
+
+## Deployment Target
+
+The intended AWS/Windows subfolder URL is:
+
+```text
+https://www.videopoints.org/public/sites/userstudy2/index.php
+```
+
+Use `BASE_URL=/public/sites/userstudy2/` and `APP_URL=https://www.videopoints.org/public/sites/userstudy2/` in the server `.env`.
 
 ## Data and Secrets
 

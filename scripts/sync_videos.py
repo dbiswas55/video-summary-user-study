@@ -250,7 +250,7 @@ def main():
     # operation = "add"           # Import every resource folder not yet in the DB.
     # operation = "delete-stale"  # Delete DB rows whose resource folder is missing.
     # operation = "delete-by-id"  # Delete only video IDs listed in delete_video_ids.
-    operation = "add"             # Keep this active when you do not want DB access.
+    operation = None              # Keep this active when you do not want DB access.
 
     # Used only when operation = "delete-by-id".
     # These are real videos.video_id values, not internal videos.id values.
@@ -259,7 +259,7 @@ def main():
     # Safety switch for write operations.
     # - True prints what would happen without changing the database.
     # - False allows inserts/deletes after confirmation.
-    dry_run = False
+    dry_run = True
 
     # Confirmation switch for write operations.
     # - False asks before adding/deleting.

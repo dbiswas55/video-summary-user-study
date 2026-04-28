@@ -12,7 +12,7 @@ This phase covers identity, access, registration consent, profile management, ad
 | Admin account work | `admin/index.php`, `admin/edit_user.php`, `admin/messages.php` |
 | Shared helpers | `app/includes/auth.php`, `app/includes/functions.php`, `app/includes/header.php`, `app/includes/footer.php`, `app/includes/mailer.php` |
 | Page assets | `assets/css/auth.css`, `assets/css/register.css`, `assets/css/profile.css`, `assets/css/admin.css`, `assets/css/messages.css`, `assets/css/contact.css`, shared styles in `assets/css/main.css`, and page scripts in `assets/js/` |
-| CLI tools | `scripts/manage_users.py`, `scripts/db.py` with `operation = "default-users"` |
+| CLI tools | `scripts/manage_users.py`, `scripts/db.py` with `operation = "default-users"` when intentionally refreshing default users |
 | Tables | `users`, `user_courses`, `contact_messages` |
 
 ## Account Types
@@ -107,7 +107,7 @@ APP_URL=http://localhost:8888/userstudy2/
 For production under the VideoPoints site, use the deployed subfolder URL, for example:
 
 ```text
-APP_URL=https://videopoints.org/userstudy2/
+APP_URL=https://www.videopoints.org/public/sites/userstudy2/
 ```
 
 `admin/messages.php` shows contact messages grouped by whether they were sent before or after login. Opening the page marks unread messages as read after loading them, so newly opened messages still appear as `New` for that page view. Admins can delete stored messages from this page.

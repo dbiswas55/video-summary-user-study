@@ -1,5 +1,5 @@
 {
-  "study_title": "Video Detailed Summary — Comparative Evaluation",
+  "study_title": "Video Detailed Summary - User Study",
   "semester": "Spring 2026",
   "study_open_date": "2026-04-25",
   "study_close_date": "2026-06-30",
@@ -9,7 +9,7 @@
     "min": 1,
     "max": 10,
     "low_label": "Not at all",
-    "high_label": "Extremely"
+    "high_label": "Highly"
   },
 
   "dimensions": [

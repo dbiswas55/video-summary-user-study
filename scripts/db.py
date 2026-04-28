@@ -25,17 +25,19 @@ SEED_USERS = [
         "consent_version": None,
         "consent_timestamp": None,
         "is_admin": True,
+        "course_ids": [],
     },
     {
         "username": "testuser",
         "email": "testuser@example.com",
         "password": "test1",
-        "subject_id": 1,
+        "subject_id": 2,
         "account_type": "pre_issued",
         "consent_given": True,
         "consent_version": "v1.0",
         "consent_timestamp": datetime.now(),
         "is_admin": False,
+        "course_ids": [531, 533],
     },
 ]
 
@@ -134,6 +136,7 @@ def default_users():
         existing = cursor.fetchone()
 
         if existing:
+            user_id = existing[0]
             cursor.execute(
                 """
                 UPDATE users
@@ -155,7 +158,7 @@ def default_users():
                     user["consent_given"],
                     user["consent_version"],
                     user["is_admin"],
-                    existing[0],
+                    user_id,
                 ),
             )
         else:
@@ -179,8 +182,40 @@ def default_users():
                     user["is_admin"],
                 ),
             )
+            user_id = cursor.lastrowid
 
-        print(f"  {user['username']:12s} password set")
+        if not user["is_admin"]:
+            course_ids = user.get("course_ids", [])
+            cursor.execute("DELETE FROM user_courses WHERE user_id = %s", (user_id,))
+            if course_ids:
+                placeholders = ", ".join(["%s"] * len(course_ids))
+                cursor.execute(
+                    f"""
+                    SELECT id
+                    FROM courses
+                    WHERE id IN ({placeholders})
+                      AND subject_id = %s
+                    """,
+                    (*course_ids, user["subject_id"]),
+                )
+                valid_course_ids = {row[0] for row in cursor.fetchall()}
+                missing_course_ids = sorted(set(course_ids) - valid_course_ids)
+                if missing_course_ids:
+                    sys.stderr.write(
+                        f"WARNING: {user['username']} skipped invalid course id(s): "
+                        f"{', '.join(map(str, missing_course_ids))}\n"
+                    )
+                for course_id in course_ids:
+                    if course_id in valid_course_ids:
+                        cursor.execute(
+                            "INSERT INTO user_courses (user_id, course_id) VALUES (%s, %s)",
+                            (user_id, course_id),
+                        )
+
+        course_note = ""
+        if not user["is_admin"] and user.get("course_ids"):
+            course_note = f" · courses {', '.join(map(str, user['course_ids']))}"
+        print(f"  {user['username']:12s} password set{course_note}")
         upserted += 1
 
     conn.commit()
@@ -247,7 +282,7 @@ def main():
                                 # refresh admin/test passwords without touching tables.
     # operation = "reset"       # DEV ONLY. Drop DB_NAME, recreate schema, then seed
                                 # users. This deletes all existing study data.
-    operation = "default-users"            # Keep this active when you do not want any DB change.
+    operation = None          # Keep this active when you do not want any DB change.
 
     if operation == "setup":
         setup_database()

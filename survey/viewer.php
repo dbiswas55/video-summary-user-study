@@ -326,7 +326,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
           <span class="qc-num">Q<?= $qn ?></span>
           <span class="qc-dim"><?= e($dim['label']) ?></span>
           <span class="qc-text"><?= e($dim['q']) ?></span>
-          <span class="qc-scale-hint"><b>1</b> not at all &middot; <b>10</b> extremely</span>
+          <span class="qc-scale-hint"><b>1</b> not at all &middot; <b>10</b> highly</span>
         </div>
         <div class="qc-body">
           <!-- Version A -->

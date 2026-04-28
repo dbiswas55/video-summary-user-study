@@ -227,10 +227,11 @@ INSERT IGNORE INTO subjects (id, code, name) VALUES
 -- Courses (4 courses; course 527 has no video resources yet)
 -- ---------------------------------------------------------------------
 INSERT IGNORE INTO courses (id, subject_id, code, name, instructor, instructor_id) VALUES
-    (527, 1, 'BIOL2301', 'Human Anatomy & Physiology I',   NULL, 1),
-    (528, 1, 'BIOL2321', 'Microbiology',                   NULL, 116),
-    (531, 2, 'COSC1336', 'Computer Science & Programming', NULL, 2207),
-    (533, 2, 'COSC4393', 'Digital Image Processing',       NULL, 12394);
+    (527, 1, 'BIOL2321', 'Microbiology for Science Majors', 'Richard Knapp',    1),
+    (528, 1, 'BIOL2301', 'Human Anatomy & Physiology I',    'Chad Wayne',       116),
+    (532, 1, 'BIOL4315', 'Neuroscience',                    'Jokubas Ziburkus', 2),
+    (531, 2, 'COSC1336', 'Computer Science & Programming',  'Jaspal Subhlok',   2207),
+    (533, 2, 'COSC4393', 'Digital Image Processing',        'Pranav Mantini',   12394);
 
 -- ---------------------------------------------------------------------
 -- No video, segment, response, progress, or message rows are seeded here.

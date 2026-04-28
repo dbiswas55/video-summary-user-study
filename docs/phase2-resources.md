@@ -79,7 +79,7 @@ Use `scripts/sync_videos.py` when resource folders and database rows need to be 
 python scripts/sync_videos.py
 ```
 
-Delete operations remove videos, segments, progress, and responses for those segments. Use `dry_run = True` first and back up the database before deleting production data.
+The checked-in/default state should keep `operation = None` and `dry_run = True` so running the script accidentally does not change the database. Delete operations remove videos, segments, progress, and responses for those segments. Use `dry_run = True` first and back up the database before deleting production data.
 
 `sync_videos.py` with `operation = "add"` is the only Phase 2 import path. It scans `resources/i{instructor_id}/v{video_id}/`, reads each folder's `metadata.json`, looks up the matching course by `courses.instructor_id`, inserts `videos` and `segments` rows, and randomly assigns `segments.version_assignment`.
 
@@ -121,8 +121,8 @@ Resource paths are built in `app/includes/functions.php`:
 By default, URLs use `BASE_URL/resources`. Override with:
 
 ```text
-RESOURCES_URL=https://static.example.org/userstudy2/resources
-VIDEO_ROOT_URL=https://video.example.org/userstudy2/resources
+RESOURCES_URL=https://static.example.org/public/sites/userstudy2/resources
+VIDEO_ROOT_URL=https://video.example.org/public/sites/userstudy2/resources
 ```
 
 ## Phase Boundaries
