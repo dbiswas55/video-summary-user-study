@@ -39,7 +39,7 @@ function toggleResetForm() {
     if (count === 0) { hint.textContent = ''; return; }
     if (hp && (hu || he)) { hint.textContent = ''; return; }
     if (!hp && hu && he) {
-      hint.textContent = 'Passwordless sign-in is only for pre-issued accounts without a password.';
+      hint.textContent = 'Passwordless sign-in is only for pre-issued accounts without a password. You may also use a one-click access link.';
       return;
     }
     hint.textContent = 'Enter a username or email plus password.';

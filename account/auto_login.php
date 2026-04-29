@@ -3,9 +3,8 @@
  * Token-based one-click access.
  * URL format: account/auto_login.php?token=<login_token>
  *
- * Pre-issued accounts without passwords use this as their normal login path.
- * Accounts with passwords use this as a temporary password-reset access path.
- * Any token is revoked when the user saves a new password from Profile.
+ * Active one-click links stay valid until an admin regenerates or revokes them,
+ * or the account is deactivated.
  */
 
 require_once __DIR__ . '/../app/includes/auth.php';
@@ -32,20 +31,13 @@ $stmt->execute([$token]);
 $user = $stmt->fetch();
 
 if (!$user) {
-    setFlash('error', 'This access link is invalid or has been revoked.');
+    setFlash('error', 'This access link is invalid, has been revoked, or the account is inactive.');
     header('Location: ' . baseUrl('index.php'));
     exit;
 }
 
-$hasPassword = $user['password_hash'] !== '';
-$isPreissuedPasswordless = $user['account_type'] === 'pre_issued' && !$hasPassword;
-
 loginUser($user);
 
-if ($isPreissuedPasswordless) {
-    setFlash('success', 'Welcome, ' . $user['username'] . '!');
-    header('Location: ' . baseUrl($user['is_admin'] ? 'admin/index.php' : 'dashboard.php'));
-} else {
-    header('Location: ' . baseUrl('account/profile.php'));
-}
+setFlash('success', 'Welcome, ' . $user['username'] . '!');
+header('Location: ' . baseUrl($user['is_admin'] ? 'admin/index.php' : 'dashboard.php'));
 exit;

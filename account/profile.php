@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Passwords do not match.';
         } else {
             $hash = password_hash($new, PASSWORD_BCRYPT);
-            $pdo->prepare('UPDATE users SET password_hash = ?, login_token = NULL WHERE id = ?')
+            $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
                 ->execute([$hash, $user['id']]);
             $success = 'Password saved. You can now sign in with your new password.';
             $user['password_hash'] = $hash;
@@ -123,9 +123,9 @@ include __DIR__ . '/../app/includes/header.php';
   <?php if ($success): ?>
     <div class="alert alert-success"><?= e($success) ?></div>
   <?php endif; ?>
-  <?php if (!empty($user['login_token']) && $hasPassword): ?>
+  <?php if (!$hasPassword): ?>
     <div class="alert flash-info">
-      You are using a temporary access link. Change your password below to disable this link and use regular sign-in.
+      You can add a password below if you also want to sign in with a username or email and password.
     </div>
   <?php endif; ?>
 

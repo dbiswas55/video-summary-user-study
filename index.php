@@ -42,7 +42,7 @@ include __DIR__ . '/app/includes/header.php';
       <?php endif; ?>
       <p class="auth-hint auth-hint-spaced">
         Sign in with your username or email and password.
-        Pre-issued accounts without a password may use username and email.
+        Pre-issued accounts without a password may use username and email, or a one-click access link.
       </p>
       <form action="<?= baseUrl('account/login.php') ?>" method="POST" class="auth-form" id="loginForm">
         <label>
@@ -65,20 +65,20 @@ include __DIR__ . '/app/includes/header.php';
       </form>
       <p class="auth-hint">Don't have an account? <a href="?tab=register" onclick="event.preventDefault(); switchTab('register')">Register here</a></p>
       <p class="auth-hint">
-        <a href="#" onclick="event.preventDefault(); toggleResetForm()">Forgot password?</a>
+        <a href="#" onclick="event.preventDefault(); toggleResetForm()">Need a one-click access link?</a>
       </p>
       <form action="<?= baseUrl('account/forgot_password.php') ?>" method="POST" class="auth-form reset-form" id="resetForm">
         <label>
-          <span>Password Help</span>
+          <span>One-Click Access</span>
           <input type="email" name="reset_email" autocomplete="email" placeholder="Enter your account email">
-          <small>We can send a one-click access link if this email is on your account.</small>
+          <small>We can send a sign-in link if this email is on your account.</small>
         </label>
         <button type="submit" class="btn btn-secondary">Send Access Link</button>
       </form>
     </div>
 
     <div id="registerPanel" class="tab-panel <?= $activeTab === 'register' ? 'active' : '' ?>">
-      <p class="auth-hint">To register, you will be guided through a brief consent form, account setup, and course selection.</p>
+      <p class="auth-hint">To register, you will be guided through account setup and course selection.</p>
       <a href="<?= baseUrl('account/register.php') ?>" class="btn btn-primary btn-block">Begin Registration</a>
       <p class="auth-hint">Already registered? <a href="?tab=login" onclick="event.preventDefault(); switchTab('login')">Sign in here</a></p>
     </div>

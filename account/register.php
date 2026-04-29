@@ -12,34 +12,18 @@ if (isLoggedIn()) {
 $pageTitle = 'Register — User Study';
 $pageStyles = ['assets/css/register.css'];
 $pageScripts = ['assets/js/register.js'];
-$consent  = loadJsonConfig('consent.json');
-$consentDisplayMode = $consent['display_mode'] ?? 'text';
-$usePdfConsent = $consentDisplayMode === 'pdf' && !empty($consent['pdf']['filename']);
-$consentAgreementLabel = $usePdfConsent
-    ? ($consent['pdf']['agreement_label'] ?? 'I agree to participate in this survey')
-    : ($consent['agreement_label'] ?? 'I agree to participate in this survey.');
-$consentPdfUrl = baseUrl('account/consent_pdf.php');
 $subjects = getSubjects();
 $errors = [];
 $step = (int)($_POST['step'] ?? $_GET['step'] ?? 1);
+if ($step < 1 || $step > 3) {
+    $step = 1;
+}
 
 $reg = $_SESSION['registration'] ?? [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($step === 1) {
-        if (empty($_POST['consent_agreed'])) {
-            $errors[] = 'You must agree to the consent form to participate.';
-        } else {
-            $reg['consent_agreed']    = true;
-            $reg['consent_version']   = $consent['version'];
-            $reg['consent_timestamp'] = date('Y-m-d H:i:s');
-            $_SESSION['registration'] = $reg;
-            header('Location: ?step=2');
-            exit;
-        }
-
-    } elseif ($step === 2) {
         $username = trim($_POST['username'] ?? '');
         $email    = strtolower(trim($_POST['email'] ?? ''));
         $password = $_POST['password'] ?? '';
@@ -78,12 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $reg['email']         = $email !== '' ? $email : null;
                 $reg['password_hash'] = password_hash($password, PASSWORD_BCRYPT);
                 $_SESSION['registration'] = $reg;
-                header('Location: ?step=3');
+                header('Location: ?step=2');
                 exit;
             }
         }
 
-    } elseif ($step === 3) {
+    } elseif ($step === 2) {
         $subject_id = (int)($_POST['subject_id'] ?? 0);
         $stmt = getDb()->prepare('SELECT id FROM subjects WHERE id = ?');
         $stmt->execute([$subject_id]);
@@ -94,11 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $reg['subject_id'] = $subject_id;
             $_SESSION['registration'] = $reg;
-            header('Location: ?step=4');
+            header('Location: ?step=3');
             exit;
         }
 
-    } elseif ($step === 4) {
+    } elseif ($step === 3) {
         $course_ids = $_POST['course_ids'] ?? [];
         if (!is_array($course_ids) || empty($course_ids)) {
             $errors[] = 'Please select at least one course.';
@@ -116,16 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->beginTransaction();
                 try {
                     $stmt = $pdo->prepare('
-                        INSERT INTO users (username, email, password_hash, subject_id, account_type, consent_given, consent_version, consent_timestamp)
-                        VALUES (?, ?, ?, ?, "self_registered", TRUE, ?, ?)
+                        INSERT INTO users (username, email, password_hash, subject_id, account_type)
+                        VALUES (?, ?, ?, ?, "self_registered")
                     ');
                     $stmt->execute([
                         $reg['username'],
                         $reg['email'] ?? null,
                         $reg['password_hash'],
-                        $reg['subject_id'],
-                        $reg['consent_version'],
-                        $reg['consent_timestamp']
+                        $reg['subject_id']
                     ]);
                     $user_id = $pdo->lastInsertId();
 
@@ -154,9 +136,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if ($step >= 2 && empty($reg['consent_agreed'])) { header('Location: ?step=1'); exit; }
-if ($step >= 3 && empty($reg['username']))       { header('Location: ?step=2'); exit; }
-if ($step >= 4 && empty($reg['subject_id']))     { header('Location: ?step=3'); exit; }
+if ($step >= 2 && empty($reg['username']))       { header('Location: ?step=1'); exit; }
+if ($step >= 3 && empty($reg['subject_id']))     { header('Location: ?step=2'); exit; }
 
 include __DIR__ . '/../app/includes/header.php';
 ?>
@@ -165,7 +146,7 @@ include __DIR__ . '/../app/includes/header.php';
   <div class="register-card">
 
     <div class="step-indicator">
-      <?php foreach ([1=>'Consent', 2=>'Account', 3=>'Subject', 4=>'Courses'] as $s => $label): ?>
+      <?php foreach ([1=>'Account', 2=>'Subject', 3=>'Courses'] as $s => $label): ?>
         <div class="step <?= $step === $s ? 'active' : ($step > $s ? 'done' : '') ?>">
           <span class="step-num"><?= $s ?></span>
           <span class="step-label"><?= $label ?></span>
@@ -182,50 +163,10 @@ include __DIR__ . '/../app/includes/header.php';
     <?php endif; ?>
 
     <?php if ($step === 1): ?>
-      <div class="consent-heading">
-        <h2>
-          <span><?= e($consent['title']) ?></span>
-          <span class="heading-separator">-</span>
-          <span><?= e($consent['study_name']) ?></span>
-        </h2>
-      </div>
-
-      <?php if ($usePdfConsent): ?>
-        <div class="consent-pdf-panel">
-          <p><?= e($consent['pdf']['intro'] ?? 'Please review the consent form before continuing.') ?></p>
-          <div class="consent-pdf-frame">
-            <iframe src="<?= e($consentPdfUrl) ?>" title="Consent form PDF"></iframe>
-          </div>
-          <a href="<?= e($consentPdfUrl) ?>" class="pdf-link" target="_blank" rel="noopener">
-            <?= e($consent['pdf']['open_label'] ?? 'Open consent form PDF') ?>
-          </a>
-        </div>
-      <?php else: ?>
-        <div class="consent-content">
-          <?php foreach ($consent['sections'] as $sec): ?>
-            <h3><?= e($sec['heading']) ?></h3>
-            <p><?= e($sec['text']) ?></p>
-          <?php endforeach; ?>
-        </div>
-      <?php endif; ?>
-
-      <form method="POST" class="auth-form">
-        <input type="hidden" name="step" value="1">
-        <label class="checkbox-row">
-          <input type="checkbox" name="consent_agreed" required>
-          <span><?= e($consentAgreementLabel) ?></span>
-        </label>
-        <div class="form-actions">
-          <a href="<?= baseUrl('index.php') ?>" class="btn btn-secondary">Cancel</a>
-          <button type="submit" class="btn btn-primary">Continue →</button>
-        </div>
-      </form>
-
-    <?php elseif ($step === 2): ?>
       <h2>Create Your Account</h2>
 
       <form method="POST" class="auth-form" id="registerForm">
-        <input type="hidden" name="step" value="2">
+        <input type="hidden" name="step" value="1">
         <label>
           <span>Username <span class="required-mark">*</span></span>
           <input type="text" name="username" value="<?= e($_POST['username'] ?? $reg['username'] ?? '') ?>" required minlength="3" maxlength="50" pattern="[a-zA-Z0-9_-]+">
@@ -247,16 +188,16 @@ include __DIR__ . '/../app/includes/header.php';
         </label>
 
         <div class="form-actions">
-          <a href="?step=1" class="btn btn-secondary">← Back</a>
+          <a href="<?= baseUrl('index.php') ?>" class="btn btn-secondary">Cancel</a>
           <button type="submit" class="btn btn-primary">Continue →</button>
         </div>
       </form>
-    <?php elseif ($step === 3): ?>
+    <?php elseif ($step === 2): ?>
       <h2>Select Your Subject Area</h2>
       <p class="muted-meta">Choose one subject. This will determine which courses you can select next.</p>
 
       <form method="POST" class="auth-form">
-        <input type="hidden" name="step" value="3">
+        <input type="hidden" name="step" value="2">
         <div class="subject-grid">
           <?php foreach ($subjects as $sub): ?>
             <label class="subject-option">
@@ -273,18 +214,18 @@ include __DIR__ . '/../app/includes/header.php';
           <span>I understand that my subject area cannot be changed later.</span>
         </label>
         <div class="form-actions">
-          <a href="?step=2" class="btn btn-secondary">← Back</a>
+          <a href="?step=1" class="btn btn-secondary">← Back</a>
           <button type="submit" class="btn btn-primary">Continue →</button>
         </div>
       </form>
 
-    <?php elseif ($step === 4): ?>
+    <?php elseif ($step === 3): ?>
       <?php $courses = getCoursesBySubject($reg['subject_id']); ?>
       <h2>Select Your Courses</h2>
       <p class="muted-meta">Select all the courses you are taking or have taken in this subject.</p>
 
       <form method="POST" class="auth-form">
-        <input type="hidden" name="step" value="4">
+        <input type="hidden" name="step" value="3">
         <div class="course-list compact-course-list">
           <?php foreach ($courses as $course): ?>
             <label class="course-option">
@@ -297,7 +238,7 @@ include __DIR__ . '/../app/includes/header.php';
           <?php endforeach; ?>
         </div>
         <div class="form-actions">
-          <a href="?step=3" class="btn btn-secondary">← Back</a>
+          <a href="?step=2" class="btn btn-secondary">← Back</a>
           <button type="submit" class="btn btn-primary">Complete Registration ✓</button>
         </div>
       </form>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Sends a one-click password reset access link when the submitted email
+ * Sends a one-click access link when the submitted email
  * belongs to an active non-admin account. The response is intentionally
  * generic so account existence is not exposed.
  */
@@ -24,7 +24,7 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-$genericMessage = 'If that email is linked to an active account, a password access link has been sent.';
+$genericMessage = 'If that email is linked to an active account, a one-click access link has been sent.';
 
 if (isMailConfigured()) {
     $pdo = getDb();
@@ -46,12 +46,13 @@ if (isMailConfigured()) {
 
         $link = absoluteUrl('account/auto_login.php?token=' . $token);
         $body = "Hello {$user['username']},\n\n"
-              . "Use this one-click access link to sign in and change your password:\n\n"
+              . "Use this one-click access link to sign in to the VideoPoints User Study:\n\n"
               . $link . "\n\n"
-              . "After you save a new password from Profile, this link will stop working.\n\n"
+              . "This link remains available unless an administrator replaces it, revokes it, or disables your account.\n\n"
+              . "If you want to use password sign-in too, you can add or change your password from Profile after signing in.\n\n"
               . "If you did not request this, you can ignore this email.\n";
 
-        sendAppEmail($user['email'], 'Password access link for VideoPoints User Study', $body);
+        sendAppEmail($user['email'], 'One-click access link for VideoPoints User Study', $body);
     }
 }
 

@@ -176,7 +176,7 @@ Deployment outline:
 6. Run `scripts/db.py` with `operation = "setup"` if Python is available on the server. Otherwise import `app/sql/schema.sql` manually after confirming the database name.
 7. Copy resource folders into `resources/`, or configure `RESOURCES_URL`/`VIDEO_ROOT_URL`.
 8. Visit `https://www.videopoints.org/public/sites/userstudy2/index.php`.
-9. Verify sign-in, registration, profile, admin user edit, contact messages, dashboard, survey viewer, save/submit, and email/reset links.
+9. Verify sign-in, registration, profile, admin user edit, contact messages, dashboard, survey viewer, save/submit, and email/one-click access links.
 
 The root `web.config` is included for IIS/Windows deployments. It disables directory browsing and blocks direct browser access to:
 
@@ -200,7 +200,7 @@ Switch environments by changing the target `.env` file. PHP code should not need
 | `DB_SOCKET` | MAMP socket path | Empty |
 | `DEBUG` | Usually `true` while developing | `false` |
 
-After switching, verify that normal links, asset URLs, resource URLs, and one-click login/reset URLs use the expected host and subfolder.
+After switching, verify that normal links, asset URLs, resource URLs, and one-click access URLs use the expected host and subfolder.
 
 ## Apache Protection
 

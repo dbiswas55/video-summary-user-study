@@ -1,6 +1,6 @@
 # Phase 1 - User System
 
-This phase covers identity, access, registration consent, profile management, admin user operations, participant contact messages, and password-reset access links.
+This phase covers identity, access, registration consent, profile management, admin user operations, participant contact messages, and one-click access links.
 
 ## Owned Files
 
@@ -21,9 +21,9 @@ This phase covers identity, access, registration consent, profile management, ad
 |---|---|---|---|
 | Admin | `scripts/db.py` with `operation = "setup"`, `scripts/manage_users.py`, or direct admin setup | Username/email + password | Username/email + password |
 | Self-registered participant | `account/register.php` | Username/email + password | Username/email + password |
-| Pre-issued participant | `scripts/manage_users.py` or admin edit page | One-click link, or username + email while no password is set | Username/email + password after password is set |
+| Pre-issued participant | `scripts/manage_users.py` or admin edit page | One-click link, or username + email while no password is set | One-click link, or username/email + password after password is set |
 
-Pre-issued users can set a password from `account/profile.php`. When they do, `account/profile.php` clears `users.login_token`, so temporary links and passwordless username+email access stop working.
+Pre-issued users can set a password from `account/profile.php`. Password setup does not remove `users.login_token`; one-click links remain valid until an admin regenerates or revokes the link, or deactivates the account.
 
 ## Login Flow
 
@@ -33,9 +33,9 @@ Pre-issued users can set a password from `account/profile.php`. When they do, `a
 |---|---|---|
 | Username or email + password | Admins, self-registered users, pre-issued users with a password | `account/login.php` finds by username/email and verifies `password_hash`. |
 | Username + email, no password | Pre-issued users only, only before a password is set | `account/login.php` requires matching username and email, `account_type = 'pre_issued'`, empty `password_hash`, and active account. |
-| One-click URL | Users with an active `login_token` | `account/auto_login.php` signs the user in and sends them to `account/profile.php` if the link is a reset/temporary access link. |
+| One-click URL | Users with an active `login_token` | `account/auto_login.php` signs the user in and sends them to `dashboard.php` for participants or `admin/index.php` for admins. |
 
-The login page initially shows only a **Forgot password?** link. Clicking it opens the email form. `account/forgot_password.php` sends a one-click access link only when the submitted email belongs to an active non-admin account, but the browser always receives a generic message so account existence is not exposed.
+The login page shows a **Need a one-click access link?** option. Clicking it opens the email form. `account/forgot_password.php` sends a one-click access link only when the submitted email belongs to an active non-admin account, but the browser always receives a generic message so account existence is not exposed.
 
 ## Registration Flow
 
@@ -82,7 +82,8 @@ Current behavior:
 - Does not show account type, registration date, or last-login details.
 - Allows users without an email to add one.
 - Allows password setup/change with only `new password` and `confirm password`; current password is not required.
-- Clears `login_token` after password save.
+- Keeps any existing `login_token` after password save.
+- Shows a short note only when no password is set, explaining that the user can add a password from Profile for password-based sign-in.
 - Allows course changes only among courses under the user's existing subject.
 - Uses the same compact course checkbox layout as registration. The shared compact course styling lives in `assets/css/main.css`.
 
@@ -95,8 +96,9 @@ Subject changes remain an admin responsibility. This keeps the participant regis
 `admin/edit_user.php` supports:
 
 - Updating a participant's subject and course assignments.
-- Generating a temporary one-click access/reset link.
+- Generating a persistent one-click access link.
 - Revoking an existing one-click link.
+- Deactivating or reactivating a participant account. Deactivation blocks both password sign-in and one-click links.
 
 The generated URL uses `absoluteUrl()` and should follow `APP_URL` from `.env` when configured. For local development, for example:
 
@@ -118,7 +120,7 @@ APP_URL=https://www.videopoints.org/public/sites/userstudy2/
 
 `contact.php` stores messages in `contact_messages`. Logged-in users are attached by `user_id`; anonymous/pre-login messages store the entered name and optional email.
 
-If mail settings are present in `.env`, `app/includes/mailer.php` also emails the configured admin notification address. The same mail helper is used by `account/forgot_password.php` to send reset/access links.
+If mail settings are present in `.env`, `app/includes/mailer.php` also emails the configured admin notification address. The same mail helper is used by `account/forgot_password.php` to send one-click access links.
 
 Required mail-related `.env` keys:
 

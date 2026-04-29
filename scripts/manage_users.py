@@ -9,17 +9,26 @@ Default admin/test users are managed by scripts/db.py. This script only manages
 pre-issued participant accounts and their one-click login URLs.
 """
 import os
+import re
 import secrets
+import subprocess
+
+try:
+    import bcrypt
+except ModuleNotFoundError:
+    bcrypt = None
 
 from _db_common import connect
 
 # ── Pre-issued participant accounts ──────────────────────────────────────────
-# subject_code is optional; values must match a row in the `subjects` table
-# (current options: 'BIOL', 'COSC'). Leave it out to skip subject assignment;
-# admin can pick it later via admin/edit_user.php.
+# username, password, subject_code, and course_ids are required. Email may be
+# None, omitted, an empty string, or an actual email address. Subject and courses
+# complete the same setup that participants choose in the web flow.
+# Course IDs must belong to subject_code.
+# Current subjects: BIOL courses 527, 528, 532; COSC courses 531, 533.
 USERS_TO_CREATE = [
-    {"username": "dummy1", "email": "dummy1@example.com", "subject_code": "COSC"},
-    {"username": "dummy2", "email": "dummy2@example.com", "subject_code": "BIOL"},
+    {"username": "dummy1", "email": None, "password": "dummy1pass", "subject_code": "COSC", "course_ids": [531, 533]},
+    {"username": "dummy2", "email": None, "password": "dummy2pass", "subject_code": "BIOL", "course_ids": [527, 528]},
 ]
 
 # ── URL helpers ───────────────────────────────────────────────────────────────
@@ -43,12 +52,88 @@ def login_link(token: str) -> str:
     return f"{BASE_URL.rstrip('/')}/account/auto_login.php?token={token}"
 
 
+def hash_password(plain_password: str) -> str:
+    if bcrypt:
+        return bcrypt.hashpw(
+            plain_password.encode("utf-8"),
+            bcrypt.gensalt(rounds=10),
+        ).decode("utf-8")
+
+    result = subprocess.run(
+        ["php", "-r", "echo password_hash($argv[1], PASSWORD_BCRYPT);", plain_password],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def normalized_email(raw_email):
+    email = str(raw_email or "").strip().lower()
+    return email or None
+
+
+def is_valid_password(password: str) -> bool:
+    return (
+        len(password) >= 4
+        and re.search(r"[a-zA-Z]", password)
+        and re.search(r"[0-9]", password)
+    )
+
+
 def get_subject_id(cur, code: str):
     if not code:
         return None
     cur.execute("SELECT id FROM subjects WHERE code = %s", (code,))
     row = cur.fetchone()
     return row[0] if row else None
+
+
+def normalized_course_ids(raw_course_ids):
+    if raw_course_ids is None:
+        return [], []
+    if isinstance(raw_course_ids, str):
+        raw_values = [part.strip() for part in raw_course_ids.split(",")]
+    elif isinstance(raw_course_ids, (list, tuple, set)):
+        raw_values = raw_course_ids
+    else:
+        raw_values = [raw_course_ids]
+
+    course_ids = []
+    invalid_values = []
+    for raw_id in raw_values:
+        try:
+            course_id = int(raw_id)
+        except (TypeError, ValueError):
+            invalid_values.append(raw_id)
+            continue
+        if course_id not in course_ids:
+            course_ids.append(course_id)
+    return course_ids, invalid_values
+
+
+def valid_course_ids_for_subject(cur, course_ids, subject_id):
+    if not course_ids:
+        return set()
+    placeholders = ", ".join(["%s"] * len(course_ids))
+    cur.execute(
+        f"""
+        SELECT id
+        FROM courses
+        WHERE id IN ({placeholders})
+          AND subject_id = %s
+        """,
+        (*course_ids, subject_id),
+    )
+    return {row[0] for row in cur.fetchall()}
+
+
+def users_to_create_by_username():
+    return {
+        (spec.get("username") or "").strip(): spec
+        for spec in USERS_TO_CREATE
+        if (spec.get("username") or "").strip()
+    }
 
 
 # ── Operations ────────────────────────────────────────────────────────────────
@@ -86,36 +171,79 @@ def create_users():
 
     for spec in USERS_TO_CREATE:
         username  = (spec.get("username") or "").strip()
-        email     = (spec.get("email")    or "").strip().lower()
+        email     = normalized_email(spec.get("email"))
+        password  = str(spec.get("password") or "")
         subj_code = (spec.get("subject_code") or "").strip()
+        course_ids, invalid_course_values = normalized_course_ids(spec.get("course_ids"))
 
-        if not username or not email:
-            print(f"  ✗ skip — missing username/email: {spec}")
+        if not username:
+            print(f"  ✗ skip — missing username: {spec}")
+            errored += 1
+            continue
+        if not is_valid_password(password):
+            print(f"  ✗ {username:20s}  password must be at least 4 chars with one letter and one number")
+            errored += 1
+            continue
+        if invalid_course_values:
+            print(
+                f"  ✗ {username:20s}  invalid course_ids value(s): "
+                f"{', '.join(map(str, invalid_course_values))}"
+            )
+            errored += 1
+            continue
+        if not subj_code:
+            print(f"  ✗ {username:20s}  missing subject_code")
+            errored += 1
+            continue
+        if not course_ids:
+            print(f"  ✗ {username:20s}  missing course_ids")
             errored += 1
             continue
 
-        cur.execute("SELECT id FROM users WHERE username = %s OR email = %s",
-                    (username, email))
+        if email:
+            cur.execute("SELECT id FROM users WHERE username = %s OR email = %s",
+                        (username, email))
+        else:
+            cur.execute("SELECT id FROM users WHERE username = %s", (username,))
         if cur.fetchone():
             print(f"  ↪ {username:20s}  exists — skipped")
             skipped += 1
             continue
 
         subject_id = get_subject_id(cur, subj_code)
-        if subj_code and not subject_id:
+        if not subject_id:
             print(f"  ✗ {username:20s}  unknown subject_code '{subj_code}'")
             errored += 1
             continue
 
+        valid_course_ids = valid_course_ids_for_subject(cur, course_ids, subject_id)
+        invalid_course_ids = [cid for cid in course_ids if cid not in valid_course_ids]
+        if invalid_course_ids:
+            print(
+                f"  ✗ {username:20s}  invalid course_ids for {subj_code}: "
+                f"{', '.join(map(str, invalid_course_ids))}"
+            )
+            errored += 1
+            continue
+
         token = gen_token()
+        password_hash = hash_password(password)
         cur.execute("""
             INSERT INTO users
                 (username, email, password_hash, subject_id, account_type,
                  consent_given, is_active, is_admin, login_token)
-            VALUES (%s, %s, '', %s, 'pre_issued', FALSE, TRUE, FALSE, %s)
-        """, (username, email, subject_id, token))
+            VALUES (%s, %s, %s, %s, 'pre_issued', FALSE, TRUE, FALSE, %s)
+        """, (username, email, password_hash, subject_id, token))
+        user_id = cur.lastrowid
+
+        for course_id in course_ids:
+            cur.execute(
+                "INSERT INTO user_courses (user_id, course_id) VALUES (%s, %s)",
+                (user_id, course_id),
+            )
 
         print(f"  ✓ {username:20s}  created")
+        print(f"     subject: {subj_code} · courses: {', '.join(map(str, course_ids))}")
         print(f"     → {login_link(token)}")
         created += 1
 
@@ -165,21 +293,22 @@ def delete_users():
     print(f"✓ {deleted} user(s) deleted.\n")
 
 
-def generate_login_urls(usernames=None, refresh_existing_tokens=False):
-    usernames = [u.strip() for u in (usernames or []) if u.strip()]
+def retrieve_login_info(selected_usernames=None, refresh_pw=False, refresh_token=False):
+    selected_usernames = [u.strip() for u in (selected_usernames or []) if u.strip()]
+    specs_by_username = users_to_create_by_username()
 
     conn = connect()
     cur  = conn.cursor(dictionary=True)
 
     params = []
     username_filter = ""
-    if usernames:
-        placeholders = ", ".join(["%s"] * len(usernames))
+    if selected_usernames:
+        placeholders = ", ".join(["%s"] * len(selected_usernames))
         username_filter = f" AND username IN ({placeholders})"
-        params.extend(usernames)
+        params.extend(selected_usernames)
 
     cur.execute(f"""
-        SELECT id, username, email, account_type, login_token, is_active
+        SELECT id, username, email, account_type, password_hash, login_token, is_active
         FROM users
         WHERE account_type = 'pre_issued'
           AND is_admin = FALSE
@@ -189,40 +318,71 @@ def generate_login_urls(usernames=None, refresh_existing_tokens=False):
     users = cur.fetchall()
 
     if not users:
-        if usernames:
-            print(f"No pre-issued users found for: {', '.join(usernames)}")
+        if selected_usernames:
+            print(f"No pre-issued users found for: {', '.join(selected_usernames)}")
         else:
             print("No pre-issued users.")
         cur.close()
         conn.close()
         return
 
-    if usernames:
+    if selected_usernames:
         found = {u["username"] for u in users}
-        missing = [u for u in usernames if u not in found]
+        missing = [u for u in selected_usernames if u not in found]
         if missing:
             print(f"Not found or not pre-issued: {', '.join(missing)}\n")
 
-    print(f"\n→ Login URLs for {len(users)} pre-issued user(s):\n")
+    print(f"\n→ Login info for {len(users)} pre-issued user(s):\n")
     for u in users:
         status = "active" if u['is_active'] else "DISABLED"
+        spec = specs_by_username.get(u["username"], {})
+        spec_password = str(spec.get("password") or "")
+        password_note = ""
+
+        if refresh_pw:
+            if is_valid_password(spec_password):
+                cur.execute(
+                    "UPDATE users SET password_hash = %s WHERE id = %s",
+                    (hash_password(spec_password), u["id"]),
+                )
+                password = spec_password
+                password_note = "refreshed"
+            else:
+                password = "(not refreshed; no valid password in USERS_TO_CREATE)"
+                password_note = "password unchanged"
+        elif is_valid_password(spec_password):
+            password = spec_password
+            password_note = "from USERS_TO_CREATE"
+        elif u["password_hash"]:
+            password = "(stored hash only; plaintext not retrievable)"
+            password_note = "use refresh_pw=True with a USERS_TO_CREATE password to reset"
+        else:
+            password = "(no password set)"
+            password_note = "passwordless"
+
         token  = u['login_token']
-        if refresh_existing_tokens or not token:
+        if refresh_token or not token:
             token = gen_token()
             cur.execute("UPDATE users SET login_token = %s WHERE id = %s",
                         (token, u["id"]))
-            if refresh_existing_tokens:
+            if refresh_token:
                 status += ", refreshed token"
             else:
                 status += ", token created"
         link = login_link(token)
         print(f"  id={u['id']:<4d}  {u['username']:20s}  "
               f"{u['email'] or '—':30s}  [{status}]")
-        print(f"    {link}\n")
+        print(f"    username: {u['username']}")
+        print(f"    password: {password} ({password_note})")
+        print(f"    one-click: {link}\n")
 
     conn.commit()
     cur.close()
     conn.close()
+
+
+def generate_login_urls(usernames=None, refresh_existing_tokens=False):
+    retrieve_login_info(usernames, refresh_pw=False, refresh_token=refresh_existing_tokens)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -231,24 +391,25 @@ def main():
     #
     # operation = "create-users"          # Create USERS_TO_CREATE participant accounts.
                                          # This first verifies an active admin exists.
-    # operation = "generate-login-urls"   # Print one-click login URLs for pre-issued users.
+    # operation = "retrieve-login-info"   # Print username/password info and one-click URLs.
     # operation = "delete-users"          # Interactive deletion of non-admin users.
-    operation = None                     # Keep this active when you do not want changes.
+    operation = "create-users"                    # Keep this active when you do not want changes.
 
-    # Used only when operation = "generate-login-urls".
-    # - [] means generate URLs for every pre-issued non-admin user.
+    # Used only when operation = "retrieve-login-info".
+    # - [] means show info for every pre-issued non-admin user.
     # - ["dummy1", "dummy2"] limits output to selected usernames.
-    login_url_usernames = []
+    selected_usernames = []
 
-    # Used only when operation = "generate-login-urls".
-    # - False keeps existing tokens and creates tokens only when missing.
-    # - True replaces existing tokens, invalidating old one-click URLs.
-    refresh_existing_login_tokens = False
+    # Used only when operation = "retrieve-login-info".
+    # - refresh_pw=True resets each selected user's password to USERS_TO_CREATE password.
+    # - refresh_token=True replaces existing one-click tokens, invalidating old URLs.
+    refresh_pw = False
+    refresh_token = False
 
     if operation == "create-users":
         create_users()
-    elif operation == "generate-login-urls":
-        generate_login_urls(login_url_usernames, refresh_existing_login_tokens)
+    elif operation in ("retrieve-login-info", "generate-login-urls"):
+        retrieve_login_info(selected_usernames, refresh_pw, refresh_token)
     elif operation == "delete-users":
         delete_users()
     else:

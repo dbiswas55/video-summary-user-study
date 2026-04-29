@@ -2,7 +2,8 @@
 /**
  * Admin: Edit a single user.
  *  - Change subject + courses
- *  - Generate / revoke one-click login / password reset links
+ *  - Generate / revoke persistent one-click login links
+ *  - Activate / deactivate participant accounts
  */
 
 require_once __DIR__ . '/../app/includes/auth.php';
@@ -90,6 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare('UPDATE users SET login_token = NULL WHERE id = ?')
             ->execute([$user_id]);
         setFlash('success', 'One-click access link revoked.');
+        header('Location: ?id=' . $user_id);
+        exit;
+    }
+
+    if ($action === 'toggle_active') {
+        $is_active = (int)($_POST['is_active'] ?? 0) === 1 ? 1 : 0;
+        $pdo->prepare('UPDATE users SET is_active = ? WHERE id = ?')
+            ->execute([$is_active, $user_id]);
+        setFlash('success', $is_active ? 'User account reactivated.' : 'User account deactivated.');
         header('Location: ?id=' . $user_id);
         exit;
     }
@@ -188,9 +198,9 @@ include __DIR__ . '/../app/includes/header.php';
   <section class="admin-section">
     <h2>One-Click Access Link</h2>
     <p class="muted-meta">
-      Share this link only with the account owner. For self-registered users, it opens
-      Profile and asks them to change their password. The link stops working after they
-      save a new password. Regenerating the link revokes the previous one.
+      Share this link only with the account owner. It signs the participant in and sends
+      them to the dashboard. The link has no expiration date and stays valid until an
+      admin regenerates it, revokes it, or deactivates the account.
     </p>
 
     <?php if ($auto_login_url): ?>
@@ -204,7 +214,8 @@ include __DIR__ . '/../app/includes/header.php';
     <?php endif; ?>
 
     <div class="admin-inline-actions">
-      <form method="POST" class="admin-inline-form">
+      <form method="POST" class="admin-inline-form"
+            <?php if ($auto_login_url): ?>onsubmit="return confirm('Generate a new one-click access link? The previous link will stop working.');"<?php endif; ?>>
         <input type="hidden" name="action" value="regenerate_token">
         <button type="submit" class="btn btn-primary btn-sm">
           <?= $auto_login_url ? 'Regenerate Link' : 'Generate Link' ?>
@@ -218,6 +229,21 @@ include __DIR__ . '/../app/includes/header.php';
       </form>
       <?php endif; ?>
     </div>
+  </section>
+
+  <section class="admin-section">
+    <h2>Account Access</h2>
+    <p class="muted-meta">
+      Deactivating the account blocks password sign-in and one-click link access.
+    </p>
+    <form method="POST"
+          onsubmit="return confirm('<?= $user['is_active'] ? 'Deactivate this user account? They will no longer be able to sign in or use one-click links.' : 'Reactivate this user account? They will be able to sign in again.' ?>');">
+      <input type="hidden" name="action" value="toggle_active">
+      <input type="hidden" name="is_active" value="<?= $user['is_active'] ? '0' : '1' ?>">
+      <button type="submit" class="btn <?= $user['is_active'] ? 'btn-secondary' : 'btn-primary' ?> btn-sm">
+        <?= $user['is_active'] ? 'Deactivate Account' : 'Reactivate Account' ?>
+      </button>
+    </form>
   </section>
 
 </div>

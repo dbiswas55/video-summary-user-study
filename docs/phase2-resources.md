@@ -127,4 +127,4 @@ VIDEO_ROOT_URL=https://video.example.org/public/sites/userstudy2/resources
 
 ## Phase Boundaries
 
-Phase 2 owns resource organization, import, and participant assignment display. It does not own account creation or password/reset behavior; that is Phase 1. It feeds the viewer, but survey rendering and response writes belong to Phase 3.
+Phase 2 owns resource organization, import, and participant assignment display. It does not own account creation, password sign-in, or one-click access behavior; that is Phase 1. It feeds the viewer, but survey rendering and response writes belong to Phase 3.

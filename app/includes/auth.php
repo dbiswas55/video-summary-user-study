@@ -28,6 +28,17 @@ function requireLogin() {
         header('Location: ' . $config['base_url'] . 'index.php');
         exit;
     }
+
+    $pdo = getDb();
+    $stmt = $pdo->prepare('SELECT is_active FROM users WHERE id = ? LIMIT 1');
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+    if (!$user || !(bool)$user['is_active']) {
+        logoutUser();
+        $config = require __DIR__ . '/../config/config.php';
+        header('Location: ' . $config['base_url'] . 'index.php');
+        exit;
+    }
 }
 
 function requireAdmin() {
