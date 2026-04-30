@@ -295,19 +295,145 @@ document.addEventListener('keydown', e => {
 
 // ── Summary rendering ─────────────────────────────────────────────────────────
 marked.setOptions({ breaks: true, gfm: true });
-function renderNormal() {
-  document.getElementById('summary-a').innerHTML = marked.parse(SUMMARY_A || '*(no content)*');
-  document.getElementById('summary-b').innerHTML = marked.parse(SUMMARY_B || '*(no content)*');
+const DIFF_BLOCK_TAGS = new Set([
+  'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'DD', 'DIV', 'DL', 'DT',
+  'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3',
+  'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'OL', 'P',
+  'PRE', 'SECTION', 'TABLE', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR',
+  'UL'
+]);
+
+function renderSummaryMarkdown(container, markdown) {
+  container.innerHTML = marked.parse(markdown || '*(no content)*');
 }
-function renderDiff() {
-  const changes = Diff.diffWords(SUMMARY_A || '', SUMMARY_B || '');
-  let mdA = '', mdB = '';
-  changes.forEach(c => {
-    if (!c.added)   mdA += c.removed ? '<mark class="diff-a">' + c.value + '</mark>' : c.value;
-    if (!c.removed) mdB += c.added   ? '<mark class="diff-b">' + c.value + '</mark>' : c.value;
+
+function renderNormal() {
+  renderSummaryMarkdown(document.getElementById('summary-a'), SUMMARY_A);
+  renderSummaryMarkdown(document.getElementById('summary-b'), SUMMARY_B);
+}
+
+function buildDiffTextIndex(root) {
+  let text = '';
+  const entries = [];
+
+  function appendText(node) {
+    const value = node.nodeValue || '';
+    if (!value) return;
+    const start = text.length;
+    text += value;
+    entries.push({ node, start, end: text.length });
+  }
+
+  function appendBoundary() {
+    if (text && !text.endsWith('\n')) text += '\n';
+  }
+
+  function walk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      appendText(node);
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    if (node.tagName === 'BR') {
+      text += '\n';
+      return;
+    }
+
+    node.childNodes.forEach(walk);
+    if (DIFF_BLOCK_TAGS.has(node.tagName)) appendBoundary();
+  }
+
+  walk(root);
+  return { text, entries };
+}
+
+function diffHighlightRanges(textA, textB) {
+  const changes = Diff.diffWords(textA || '', textB || '');
+  const rangesA = [];
+  const rangesB = [];
+  let posA = 0;
+  let posB = 0;
+
+  changes.forEach(change => {
+    const len = change.value.length;
+    if (change.removed) {
+      rangesA.push({ start: posA, end: posA + len });
+      posA += len;
+    } else if (change.added) {
+      rangesB.push({ start: posB, end: posB + len });
+      posB += len;
+    } else {
+      posA += len;
+      posB += len;
+    }
   });
-  document.getElementById('summary-a').innerHTML = marked.parse(mdA || '*(no content)*');
-  document.getElementById('summary-b').innerHTML = marked.parse(mdB || '*(no content)*');
+
+  return { rangesA, rangesB };
+}
+
+function applyDiffHighlights(entries, ranges, className) {
+  entries.forEach(entry => {
+    const overlaps = ranges
+      .map(range => ({
+        start: Math.max(range.start, entry.start) - entry.start,
+        end: Math.min(range.end, entry.end) - entry.start
+      }))
+      .filter(range => range.end > range.start)
+      .sort((a, b) => a.start - b.start);
+
+    if (!overlaps.length || !entry.node.parentNode) return;
+
+    const value = entry.node.nodeValue || '';
+    const frag = document.createDocumentFragment();
+    let cursor = 0;
+
+    overlaps.forEach(range => {
+      if (range.start > cursor) {
+        frag.appendChild(document.createTextNode(value.slice(cursor, range.start)));
+      }
+      appendDiffSegment(frag, value.slice(range.start, range.end), className);
+      cursor = range.end;
+    });
+
+    if (cursor < value.length) {
+      frag.appendChild(document.createTextNode(value.slice(cursor)));
+    }
+    entry.node.parentNode.replaceChild(frag, entry.node);
+  });
+}
+
+function appendDiffSegment(frag, value, className) {
+  if (!value.trim()) {
+    frag.appendChild(document.createTextNode(value));
+    return;
+  }
+
+  const leading = value.match(/^\s*/)[0];
+  const trailing = value.match(/\s*$/)[0];
+  const start = leading.length;
+  const end = value.length - trailing.length;
+
+  if (leading) frag.appendChild(document.createTextNode(leading));
+
+  const mark = document.createElement('mark');
+  mark.className = className;
+  mark.textContent = value.slice(start, end);
+  frag.appendChild(mark);
+
+  if (trailing) frag.appendChild(document.createTextNode(trailing));
+}
+
+function renderDiff() {
+  const summaryA = document.getElementById('summary-a');
+  const summaryB = document.getElementById('summary-b');
+  renderSummaryMarkdown(summaryA, SUMMARY_A);
+  renderSummaryMarkdown(summaryB, SUMMARY_B);
+
+  const indexA = buildDiffTextIndex(summaryA);
+  const indexB = buildDiffTextIndex(summaryB);
+  const { rangesA, rangesB } = diffHighlightRanges(indexA.text, indexB.text);
+  applyDiffHighlights(indexA.entries, rangesA, 'diff-a');
+  applyDiffHighlights(indexB.entries, rangesB, 'diff-b');
 }
 function setView(mode) {
   document.getElementById('tab-normal').classList.toggle('active', mode === 'normal');

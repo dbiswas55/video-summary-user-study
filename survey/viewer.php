@@ -575,7 +575,12 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
 
     <div class="survey-container study-step-panel" id="step-panel-visual" hidden>
       <div class="visual-step-heading">
-        <div class="section-label questions-label">Part 2 · Visual Object Selection</div>
+        <div class="visual-step-intro">
+          <div class="section-label questions-label">Part 2 · Visual Object Selection</div>
+          <p class="visual-purpose-note">
+            The goal of visual selection is to enrich the summary by identifying visual objects that could strengthen a user's review while using the summary.
+          </p>
+        </div>
         <label class="visual-size-control" for="visual-columns-slider">
           <span>Objects per row</span>
           <input type="range" id="visual-columns-slider" min="1" max="8" value="5" step="1">
