@@ -45,8 +45,9 @@ CREATE TABLE IF NOT EXISTS courses (
 -- video_filename  = mp4 filename inside the video resource folder
 --
 -- Resource paths:
---   metadata/text: {resources_root}/i{instructor_id}/v{video_id}/
---   video file:    {video_root_url}/i{instructor_id}/v{video_id}/{video_filename}
+--   video/transcript: {resources_root}/i{instructor_id}/v{video_id}/
+--   chapters:         {resources_root}/i{instructor_id}/v{video_id}/chapter{N}/
+--   video file:       {video_root_url}/i{instructor_id}/v{video_id}/{video_filename}
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS videos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -65,10 +66,11 @@ CREATE TABLE IF NOT EXISTS videos (
 
 -- ---------------------------------------------------------------------
 -- SEGMENTS
--- One segment per video folder (each folder is one chapter clip).
--- start_s / end_s are seconds within the clip (clips start at 0).
+-- One segment per chapter folder under a video resource folder.
+-- start_s / end_s are seconds within the full video/transcript timeline.
 -- slide_range_start/end track position within the original lecture deck.
--- summary_a_file / summary_b_file are filenames inside the video folder.
+-- summary_a_file / summary_b_file are chapter-relative paths such as
+-- chapter2/transcript_summary.txt or chapter2/multimodal_summary.txt.
 -- version_assignment hides the generation method from participants:
 --   normal  = A transcript-only, B multimodal
 --   swapped = A multimodal, B transcript-only
@@ -242,7 +244,7 @@ INSERT IGNORE INTO subjects (id, code, name) VALUES
     (2, 'COSC', 'Computer Science');
 
 -- ---------------------------------------------------------------------
--- Courses (4 courses; course 527 has no video resources yet)
+-- Courses
 -- ---------------------------------------------------------------------
 INSERT IGNORE INTO courses (id, subject_id, code, name, instructor, instructor_id) VALUES
     (527, 1, 'BIOL2321', 'Microbiology for Science Majors', 'Richard Knapp',    1),
@@ -253,11 +255,12 @@ INSERT IGNORE INTO courses (id, subject_id, code, name, instructor, instructor_i
 
 -- ---------------------------------------------------------------------
 -- No video, segment, response, progress, or message rows are seeded here.
--- Add videos from resource folders with:
---   python scripts/sync_videos.py --add
+-- Add videos/chapters from resource folders by setting operation = "add"
+-- in scripts/sync_videos.py, then running:
+--   python scripts/sync_videos.py
 -- ---------------------------------------------------------------------
 
 -- Default admin/test users are managed by:
---   python scripts/db.py setup
+--   set operation = "setup" in scripts/db.py, then run python scripts/db.py
 -- or:
---   python scripts/db.py seed-users
+--   set operation = "default-users" in scripts/db.py, then run python scripts/db.py

@@ -1,6 +1,6 @@
 # Video Detailed Summary - User Study
 
-PHP + MySQL web application for the VideoPoints comparative evaluation study. Participants sign in, choose courses in their subject area, view assigned lecture clips, compare two anonymized summary versions, and submit structured ratings for analysis.
+PHP + MySQL web application for the VideoPoints comparative evaluation study. Participants sign in, choose courses in their subject area, view assigned lecture chapters, compare two anonymized summary versions, rate the text summaries, and evaluate selected visual objects for later analysis.
 
 Detailed documentation lives in [`docs/`](docs/). The root README is intentionally short so the phase documents remain the source of truth.
 
@@ -10,8 +10,8 @@ Detailed documentation lives in [`docs/`](docs/). The root README is intentional
 |---|---|
 | [`docs/phase0-setup-deployment.md`](docs/phase0-setup-deployment.md) | Local Mac/MAMP setup, database setup, GitHub workflow, standalone AWS/Windows subfolder deployment, environment variables. |
 | [`docs/phase1-user-system.md`](docs/phase1-user-system.md) | Login, registration, pre-issued accounts, profile, course selection, admin user management, contact messages, email/reset-link flow. |
-| [`docs/phase2-resources.md`](docs/phase2-resources.md) | Course/video/segment resources, folder conventions, import scripts, database rows, dashboard display. |
-| [`docs/phase3-survey.md`](docs/phase3-survey.md) | Segment viewer, A/B summary comparison, questionnaire, save/submit behavior, response tables. |
+| [`docs/phase2-resources.md`](docs/phase2-resources.md) | Course/video/chapter resources, nested folder conventions, import scripts, database rows, dashboard display. |
+| [`docs/phase3-survey.md`](docs/phase3-survey.md) | Chapter viewer, A/B summary comparison, two-part questionnaire, save/submit behavior, response tables. |
 
 ## Current App Segments
 
