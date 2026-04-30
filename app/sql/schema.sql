@@ -196,6 +196,24 @@ CREATE TABLE IF NOT EXISTS responses_comments (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+-- RESPONSES: VISUAL OBJECT SELECTION
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS responses_visual_objects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    segment_id INT NOT NULL,
+    selection_quality_rating TINYINT DEFAULT NULL CHECK (selection_quality_rating BETWEEN 1 AND 10),
+    include_important_labels TEXT DEFAULT NULL,
+    include_important_none TINYINT(1) NOT NULL DEFAULT 0,
+    exclude_unimportant_labels TEXT DEFAULT NULL,
+    exclude_unimportant_none TINYINT(1) NOT NULL DEFAULT 0,
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (segment_id) REFERENCES segments(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_visual_objects (user_id, segment_id)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
 -- CONTACT MESSAGES
 -- Messages may be sent before login (user_id NULL) or after login.
 -- ---------------------------------------------------------------------

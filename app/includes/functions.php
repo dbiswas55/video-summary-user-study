@@ -81,7 +81,7 @@ function getUserCourses($user_id) {
 
 /**
  * Server-side filesystem path to a video's resource folder (or a file within it).
- * Used by PHP to read transcript.txt, summary files, scan slides/, etc.
+ * Used by PHP to read transcript.vtt, summary files, scan slides/, etc.
  */
 function getResourcePath($instructor_id, $video_id, $file = '') {
     return __DIR__ . "/../../resources/i{$instructor_id}/v{$video_id}/" . $file;
@@ -101,10 +101,10 @@ function getResourceUrl($instructor_id, $video_id, $file = '') {
 }
 
 /**
- * Browser-accessible URL to the video mp4 file.
+ * Browser-accessible URL to a file stored beside the video mp4.
  * Uses VIDEO_ROOT_URL if set; otherwise falls back to the resource URL root.
  */
-function getVideoUrl($instructor_id, $video_id, $filename) {
+function getVideoAssetUrl($instructor_id, $video_id, $filename) {
     $config = require __DIR__ . '/../config/config.php';
     $base = $config['video_root_url']
         ? rtrim($config['video_root_url'], '/')
@@ -114,6 +114,10 @@ function getVideoUrl($instructor_id, $video_id, $filename) {
                 : rtrim($config['base_url'], '/') . '/resources'
           );
     return "{$base}/i{$instructor_id}/v{$video_id}/{$filename}";
+}
+
+function getVideoUrl($instructor_id, $video_id, $filename) {
+    return getVideoAssetUrl($instructor_id, $video_id, $filename);
 }
 
 function isValidUsername($username) {

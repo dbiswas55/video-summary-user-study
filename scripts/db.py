@@ -9,8 +9,6 @@ import re
 import sys
 from datetime import datetime
 
-import bcrypt
-
 from _db_common import PROJECT_ROOT, get_config, connect, split_sql_statements
 
 
@@ -28,9 +26,9 @@ SEED_USERS = [
         "course_ids": [],
     },
     {
-        "username": "testuser",
-        "email": "testuser@example.com",
-        "password": "test1",
+        "username": "test02",
+        "email": "test02@example.com",
+        "password": "test02",
         "subject_id": 2,
         "account_type": "pre_issued",
         "consent_given": True,
@@ -39,6 +37,18 @@ SEED_USERS = [
         "is_admin": False,
         "course_ids": [531, 533],
     },
+    {
+        "username": "test03",
+        "email": "test03@example.com",
+        "password": "test03",
+        "subject_id": 1,
+        "account_type": "pre_issued",
+        "consent_given": True,
+        "consent_version": "v1.0",
+        "consent_timestamp": datetime.now(),
+        "is_admin": False,
+        "course_ids": [527, 528],
+    }
 ]
 
 
@@ -47,6 +57,8 @@ def quote_identifier(name):
 
 
 def hash_password(plain_password):
+    import bcrypt
+
     return bcrypt.hashpw(
         plain_password.encode("utf-8"),
         bcrypt.gensalt(rounds=10),
@@ -282,7 +294,7 @@ def main():
                                 # refresh admin/test passwords without touching tables.
     # operation = "reset"       # DEV ONLY. Drop DB_NAME, recreate schema, then seed
                                 # users. This deletes all existing study data.
-    operation = None          # Keep this active when you do not want any DB change.
+    operation = "none"            # Keep this active when you do not want any DB change.
 
     if operation == "setup":
         setup_database()

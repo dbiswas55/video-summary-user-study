@@ -79,7 +79,8 @@ try {
 $expectedTables = [
     'subjects', 'courses', 'videos', 'segments',
     'users', 'user_courses', 'user_segment_progress',
-    'responses_familiarity', 'responses_ratings', 'responses_comments'
+    'responses_familiarity', 'responses_ratings', 'responses_comments',
+    'responses_visual_objects'
 ];
 $existingTables = array_column(
     $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_NUM),

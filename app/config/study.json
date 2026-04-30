@@ -38,6 +38,20 @@
   ],
 
   "familiarity_question": "How familiar are you with the topic covered in this video segment?",
+  "visual_questions": {
+    "selection_quality": {
+      "label": "Selection Quality",
+      "question": "Rate the overall quality of the selected visual objects for this video chapter."
+    },
+    "include_important": {
+      "label": "Include Important",
+      "question": "Select any unselected visual objects that are important and should be included."
+    },
+    "exclude_unimportant": {
+      "label": "Exclude Unimportant",
+      "question": "Unselect any selected visual objects that are unimportant and should be excluded."
+    }
+  },
   "familiarity_options": [
     { "id": "not_familiar",  "label": "Not Familiar" },
     { "id": "somewhat",      "label": "Somewhat Familiar" },
