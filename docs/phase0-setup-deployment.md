@@ -22,7 +22,7 @@ The app is written to run from a subdirectory. The two URL settings that make th
 
 | Component | Local development | AWS Windows subfolder |
 |---|---|---|
-| PHP | MAMP PHP, PHP 7.4+ compatible | Existing PHP 7.4 site is acceptable if PDO MySQL is enabled. |
+| PHP | MAMP PHP, PHP 7.4+ compatible | Existing PHP 7.4 site is acceptable if either PDO MySQL or mysqli is enabled. |
 | MySQL | MAMP MySQL, commonly port `8889` with socket `/Applications/MAMP/tmp/mysql/mysql.sock` | MySQL/MariaDB reachable from PHP and optional Python scripts. |
 | Python | Python 3.8+ for setup/import/admin scripts | Optional on server if you run setup/import scripts elsewhere or import SQL manually. |
 | Web server | Apache through MAMP | IIS or Apache. Root `web.config` protects IIS copies; `.htaccess` protects Apache copies when overrides are enabled. |
@@ -171,7 +171,7 @@ Deployment outline:
 1. Copy the project files into `public/sites/userstudy2/`.
 2. Do not copy local-only folders such as `.git/`, `venv312/`, `.DS_Store`, caches, local dumps, or development logs.
 3. Create `.env` in `public/sites/userstudy2/` using the AWS values above.
-4. Confirm the server has PHP 7.4 with PDO MySQL enabled.
+4. Confirm the server has PHP 7.4 with either PDO MySQL or mysqli enabled.
 5. Create the MySQL database/user if needed.
 6. Run `scripts/db.py` with `operation = "setup"` if Python is available on the server. Otherwise import `app/sql/schema.sql` manually after confirming the database name.
 7. Copy resource folders into `resources/`, or configure `RESOURCES_URL`/`VIDEO_ROOT_URL`.
