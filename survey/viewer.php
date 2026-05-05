@@ -34,6 +34,8 @@ foreach ($raw_dimensions as $dim) {
         'id' => $id,
         'label' => (string)($dim['label'] ?? $id),
         'question' => (string)($dim['question'] ?? ''),
+        'low_label' => (string)($dim['low_label'] ?? $rating_scale['low_label'] ?? 'Poor'),
+        'high_label' => (string)($dim['high_label'] ?? $rating_scale['high_label'] ?? 'Excellent'),
     ];
 }
 if (!$study_dimensions) {
@@ -79,6 +81,8 @@ $visual_question_defaults = [
     'selection_quality' => [
         'label' => 'Selection Quality',
         'question' => 'Rate the overall quality of the selected visual objects for this video chapter.',
+        'low_label' => 'Very Poor',
+        'high_label' => 'Excellent',
     ],
     'include_important' => [
         'label' => 'Include Important',
@@ -96,6 +100,8 @@ foreach ($visual_question_defaults as $id => $defaults) {
     $visual_questions[$id] = [
         'label' => (string)($config['label'] ?? $defaults['label']),
         'question' => (string)($config['question'] ?? $defaults['question']),
+        'low_label' => (string)($config['low_label'] ?? $defaults['low_label'] ?? ''),
+        'high_label' => (string)($config['high_label'] ?? $defaults['high_label'] ?? ''),
     ];
 }
 
@@ -545,8 +551,14 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="qc-header">
           <span class="qc-num">Q<?= $qn ?></span>
           <span class="qc-dim"><?= e($dim['label']) ?></span>
-          <span class="qc-text"><?= e($dim['question']) ?></span>
-          <span class="qc-scale-hint"><?= e($scale_hint) ?></span>
+          <span class="qc-question-group">
+            <span class="qc-text"><?= e($dim['question']) ?></span>
+            <span class="qc-scale-inline">
+              <span class="qsi-low"><?= e($scale_min) ?>&nbsp;=&nbsp;<?= e($dim['low_label']) ?></span>
+              <span class="qsi-arrow">&#8594;</span>
+              <span class="qsi-high"><?= e($dim['high_label']) ?>&nbsp;=&nbsp;<?= e($scale_max) ?></span>
+            </span>
+          </span>
         </div>
         <div class="qc-body">
           <!-- Version A -->
@@ -578,9 +590,12 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="visual-step-intro">
           <div class="section-label questions-label">Part 2 · Visual Object Selection</div>
           <p class="visual-purpose-note">
-            The goal of visual selection is to enrich the summary by identifying visual objects that could strengthen a user's review while using the summary.
+            Here, you will evaluate a visual summary that complements the text summary to create a more complete chapter summary. These visual elements are extracted from the video frames shown above and are intended to make the summary more useful for educational review.
           </p>
         </div>
+      </div>
+
+      <div class="visual-grid-controls">
         <label class="visual-size-control" for="visual-columns-slider">
           <span>Objects per row</span>
           <input type="range" id="visual-columns-slider" min="1" max="8" value="5" step="1">
@@ -591,7 +606,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
       <div class="visual-study-layout">
         <section class="visual-group selected">
           <div class="visual-group-header">
-            <h2>Selected Visual Objects</h2>
+            <h2>Selected Visual Elements for Visual Summary</h2>
             <span><?= count($selected_visuals) ?> item<?= count($selected_visuals) !== 1 ? 's' : '' ?></span>
           </div>
           <div class="visual-object-grid">
@@ -615,7 +630,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
 
         <section class="visual-group unselected">
           <div class="visual-group-header">
-            <h2>Unselected Visual Objects</h2>
+            <h2>Unselected Visual Elements</h2>
             <span><?= count($unselected_visuals) ?> item<?= count($unselected_visuals) !== 1 ? 's' : '' ?></span>
           </div>
           <div class="visual-object-grid">
@@ -642,8 +657,16 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="qc-header">
           <span class="qc-num">Q1</span>
           <span class="qc-dim"><?= e($visual_questions['selection_quality']['label']) ?></span>
-          <span class="qc-text"><?= e($visual_questions['selection_quality']['question']) ?></span>
-          <span class="qc-scale-hint"><?= e($scale_hint) ?></span>
+          <span class="qc-question-group">
+            <span class="qc-text"><?= e($visual_questions['selection_quality']['question']) ?></span>
+            <?php if ($visual_questions['selection_quality']['low_label'] !== '' || $visual_questions['selection_quality']['high_label'] !== ''): ?>
+            <span class="qc-scale-inline">
+              <span class="qsi-low"><?= e($scale_min) ?>&nbsp;=&nbsp;<?= e($visual_questions['selection_quality']['low_label']) ?></span>
+              <span class="qsi-arrow">&#8594;</span>
+              <span class="qsi-high"><?= e($visual_questions['selection_quality']['high_label']) ?>&nbsp;=&nbsp;<?= e($scale_max) ?></span>
+            </span>
+            <?php endif; ?>
+          </span>
         </div>
         <div class="qc-body">
           <div class="rating-row visual-rating-row">

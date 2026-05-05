@@ -294,7 +294,7 @@ def main():
                                 # refresh admin/test passwords without touching tables.
     # operation = "reset"       # DEV ONLY. Drop DB_NAME, recreate schema, then seed
                                 # users. This deletes all existing study data.
-    operation = "none"            # Keep this active when you do not want any DB change.
+    operation = "setup"            # Keep this active when you do not want any DB change.
 
     if operation == "setup":
         setup_database()

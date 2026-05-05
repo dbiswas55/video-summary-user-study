@@ -288,7 +288,7 @@ def delete_folder(
 
 if __name__ == "__main__":
     # Set operation to one of: "list", "upload", "collect", "download", "delete"
-    operation = "upload"
+    operation = "collect"
 
     # local_path: relative to data/  |  s3_dir: relative to transfer/ in S3
     # For upload : provide local_path; s3_dir defaults to local_path if omitted.

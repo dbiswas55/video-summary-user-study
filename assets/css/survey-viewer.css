@@ -471,13 +471,35 @@ mark.diff-b { background: #f9e1dc; border-radius: 2px; padding: 0 1px; color: in
   color: #5f5870; background: #eeecf6; padding: 4px 10px; border-radius: 100px; white-space: nowrap;
 }
 .qc-text {
-  font-size: 0.95rem; font-weight: 500; line-height: 1.45; flex: 1; min-width: 180px;
+  font-size: 0.95rem; font-weight: 500; line-height: 1.45; min-width: 180px;
+}
+.qc-question-group {
+  display: inline-flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; min-width: 0;
 }
 .qc-scale-hint {
   font-size: 11px; color: #6e6e73; background: #f5f5f7; padding: 4px 10px;
   border-radius: 100px; white-space: nowrap; flex-shrink: 0;
 }
 .qc-scale-hint b { color: #1d1d1f; font-weight: 600; }
+
+/* Per-question inline scale labels — sits in qc-header alongside the question text */
+.qc-scale-inline {
+  display: inline-flex; align-items: center; gap: 5px;
+  flex-shrink: 0;
+}
+.qsi-low {
+  font-size: 11px; font-weight: 700; letter-spacing: .01em; white-space: nowrap;
+  color: #9f1239; background: #fff1f2; padding: 3px 10px;
+  border-radius: 100px; border: 1.5px solid #fda4af;
+}
+.qsi-arrow {
+  font-size: 11px; color: #818cf8; font-weight: 700; user-select: none;
+}
+.qsi-high {
+  font-size: 11px; font-weight: 700; letter-spacing: .01em; white-space: nowrap;
+  color: #065f46; background: #ecfdf5; padding: 3px 10px;
+  border-radius: 100px; border: 1.5px solid #6ee7b7;
+}
 
 .qc-body { padding: 16px 22px; display: flex; flex-direction: column; gap: 12px; }
 
@@ -504,11 +526,11 @@ mark.diff-b { background: #f9e1dc; border-radius: 2px; padding: 0 1px; color: in
 }
 .version-pill.a {
   color: #24527a;
-  background: #e7f0f7;
+  background: none;
 }
 .version-pill.b {
   color: #7a4a32;
-  background: #f6ece6;
+  background: none;
 }
 .version-pill.visual {
   color: #24527a;
@@ -558,23 +580,24 @@ mark.diff-b { background: #f9e1dc; border-radius: 2px; padding: 0 1px; color: in
 
 /* ── Visual object study ── */
 .visual-step-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  width: 100%;
 }
 .visual-step-intro {
-  flex: 1 1 620px;
-  min-width: 0;
+  width: 100%;
+}
+.visual-grid-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
 }
 .visual-purpose-note {
-  margin: -4px 0 12px;
+  margin: -4px 0 4px;
   max-width: none;
-  color: #1d4f78;
+  color: #9b1c1c;
   font-size: 0.94rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.5;
+  text-align: left;
 }
 .visual-size-control {
   display: inline-flex;

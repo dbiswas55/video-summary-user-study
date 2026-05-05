@@ -18,22 +18,30 @@
     {
       "id": "faithfulness",
       "label": "Faithfulness",
-      "question": "How faithful is each summary to the video chapter content?"
+      "question": "How faithful is each summary to what is actually presented in the video chapter?",
+      "low_label": "Not Faithful",
+      "high_label": "Very Faithful"
     },
     {
       "id": "completeness",
       "label": "Completeness",
-      "question": "How completely does each summary capture the main concepts of the video chapter?"
+      "question": "How completely does each summary capture the main concepts of the video chapter?",
+      "low_label": "Not Complete",
+      "high_label": "Very Complete"
     },
     {
       "id": "coherence",
       "label": "Coherence",
-      "question": "How coherent and logically organized is each summary?"
+      "question": "How coherent and logically organized is each summary?",
+      "low_label": "Not Coherent",
+      "high_label": "Very Coherent"
     },
     {
       "id": "usefulness",
       "label": "Usefulness",
-      "question": "How useful is each summary as educational review material?"
+      "question": "How useful is each summary as educational review material?",
+      "low_label": "Not Useful",
+      "high_label": "Very Useful"
     }
   ],
 
@@ -41,15 +49,17 @@
   "visual_questions": {
     "selection_quality": {
       "label": "Selection Quality",
-      "question": "Rate the overall quality of the selected visual objects for this video chapter."
+      "question": "How would you rate the overall quality of the selected visual elements for this video chapter?",
+      "low_label": "Very Poor",
+      "high_label": "Excellent"
     },
     "include_important": {
       "label": "Include Important",
-      "question": "Select any unselected visual objects that are important and should be included."
+      "question": "Select any unselected visual elements that you think are important and should be included in the visual summary."
     },
     "exclude_unimportant": {
       "label": "Exclude Unimportant",
-      "question": "Unselect any selected visual objects that are unimportant and should be excluded."
+      "question": "Deselect any selected visual elements that you think are unimportant and should be excluded from the visual summary."
     }
   },
   "familiarity_options": [
