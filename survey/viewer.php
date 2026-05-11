@@ -518,7 +518,14 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
     <input type="hidden" name="visual_exclude_unimportant_none" id="visual-exclude-unimportant-none-val" value="0">
 
     <div class="survey-container study-step-panel" id="step-panel-text">
-      <div class="section-label questions-label">Part 1 · Text Summary Evaluation</div>
+      <div class="visual-step-heading">
+        <div class="visual-step-intro">
+          <div class="section-label questions-label">Part 1 · Text Summary Evaluation</div>
+          <p class="visual-purpose-note">
+            In the following questions, we ask you to evaluate and compare these two text summaries for this lecture video chapter.
+          </p>
+        </div>
+      </div>
 
       <!-- Q1: Familiarity -->
       <div class="question-card">
@@ -590,7 +597,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="visual-step-intro">
           <div class="section-label questions-label">Part 2 · Visual Object Selection</div>
           <p class="visual-purpose-note">
-            Here, you will evaluate a visual summary that complements the text summary to create a more complete chapter summary. These visual elements are extracted from the video frames shown above and are intended to make the summary more useful for educational review.
+            In this section, you will evaluate selected visuals (a visual summary) that complement the text summary and help form a more complete multimodal chapter summary. We seek your opinion on their quality and content of this visual summary.
           </p>
         </div>
       </div>
@@ -680,7 +687,9 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="qc-header">
           <span class="qc-num">Q2</span>
           <span class="qc-dim"><?= e($visual_questions['include_important']['label']) ?></span>
-          <span class="qc-text"><?= e($visual_questions['include_important']['question']) ?></span>
+          <span class="qc-question-group">
+            <span class="qc-text"><?= e($visual_questions['include_important']['question']) ?></span>
+          </span>
         </div>
         <div class="qc-body">
           <div class="visual-choice-group" id="visual-missing-options">
@@ -702,7 +711,9 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="qc-header">
           <span class="qc-num">Q3</span>
           <span class="qc-dim"><?= e($visual_questions['exclude_unimportant']['label']) ?></span>
-          <span class="qc-text"><?= e($visual_questions['exclude_unimportant']['question']) ?></span>
+          <span class="qc-question-group">
+            <span class="qc-text"><?= e($visual_questions['exclude_unimportant']['question']) ?></span>
+          </span>
         </div>
         <div class="qc-body">
           <div class="visual-choice-group" id="visual-unwanted-options">

@@ -35,7 +35,7 @@ SEED_USERS = [
         "consent_version": "v1.0",
         "consent_timestamp": datetime.now(),
         "is_admin": False,
-        "course_ids": [531, 533],
+        "course_ids": [390, 533],
     },
     {
         "username": "test03",

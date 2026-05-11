@@ -49,17 +49,17 @@
   "visual_questions": {
     "selection_quality": {
       "label": "Selection Quality",
-      "question": "How would you rate the overall quality of the selected visual elements for this video chapter?",
+      "question": "The top row in the picture consists of visual objects selected for the visual summary. Rate the overall quality of the visual summary of this video chapter.",
       "low_label": "Very Poor",
       "high_label": "Excellent"
     },
     "include_important": {
       "label": "Include Important",
-      "question": "Select any unselected visual elements that you think are important and should be included in the visual summary."
+      "question": "The bottom row in the picture consists of visual objects NOT selected for the visual summary. Identify any unselected visual objects which, in your opinion, should be part of a good visual summary. Select below:"
     },
     "exclude_unimportant": {
       "label": "Exclude Unimportant",
-      "question": "Deselect any selected visual elements that you think are unimportant and should be excluded from the visual summary."
+      "question": "Among the visual objects selected for the visual summary in the top row, identify any that, in your opinion, should not be part of the visual summary. Deselect below:"
     }
   },
   "familiarity_options": [
