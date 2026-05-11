@@ -27,7 +27,7 @@ $pageStyles = $pageStyles ?? [];
     </a>
     <nav class="user-nav">
       <?php if ($headerUser): ?>
-        <a href="<?= baseUrl('dashboard.php') ?>" class="nav-link">Home</a>
+        <a href="<?= baseUrl('dashboard.php') ?>" class="nav-link">Dashboard</a>
         <?php if ($headerUser['is_admin']): ?>
           <?php
             $pdo = getDb();
@@ -36,6 +36,7 @@ $pageStyles = $pageStyles ?? [];
           <a href="<?= baseUrl('admin/index.php') ?>" class="nav-link">Admin<?= $unread > 0 ? ' <span class="nav-badge">' . $unread . '</span>' : '' ?></a>
         <?php endif; ?>
         <a href="<?= baseUrl('account/profile.php') ?>" class="nav-link">Profile</a>
+        <a href="<?= baseUrl('help.php') ?>" class="nav-link">Help</a>
         <a href="<?= baseUrl('contact.php') ?>" class="nav-link">Contact</a>
         <a href="<?= baseUrl('account/logout.php') ?>" class="nav-link">Logout</a>
       <?php else: ?>
