@@ -603,14 +603,14 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="visual-step-intro">
           <div class="section-label questions-label">Part 2 · Visual Object Selection</div>
           <p class="visual-purpose-note">
-            In this section, you will evaluate selected visuals (a visual summary) that complement the text summary and help form a more complete multimodal chapter summary. We seek your opinion on their quality and content of this visual summary.
+            In this section, you will help us evaluate a visual summary composed of selected visual objects from the video frames. The purpose of the visual summary is to complement the text summary and form a more complete multimodal chapter summary.
           </p>
         </div>
       </div>
 
       <div class="visual-grid-controls">
         <label class="visual-size-control" for="visual-columns-slider">
-          <span>Objects per row</span>
+          <span>Images per row</span>
           <input type="range" id="visual-columns-slider" min="1" max="8" value="5" step="1">
           <output id="visual-columns-output" for="visual-columns-slider">5</output>
         </label>
@@ -619,7 +619,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
       <div class="visual-study-layout">
         <section class="visual-group selected">
           <div class="visual-group-header">
-            <h2>Selected Visual Elements for Visual Summary</h2>
+            <h2>Selected Visual Objects</h2>
             <span><?= count($selected_visuals) ?> item<?= count($selected_visuals) !== 1 ? 's' : '' ?></span>
           </div>
           <div class="visual-object-grid">
@@ -643,7 +643,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
 
         <section class="visual-group unselected">
           <div class="visual-group-header">
-            <h2>Unselected Visual Elements</h2>
+            <h2>Not Selected Visual Objects</h2>
             <span><?= count($unselected_visuals) ?> item<?= count($unselected_visuals) !== 1 ? 's' : '' ?></span>
           </div>
           <div class="visual-object-grid">

@@ -177,18 +177,18 @@ include __DIR__ . '/app/includes/header.php';
       Part 2 — Visual Object Selection
     </h2>
     <p>
-      In Part 2, you evaluate a visual summary made up of <em>visual objects</em> —
+      In Part 2, you evaluate a visual summary made up of <em>visual elements</em> —
       cropped images extracted from key frames of the lecture video. These are
       intended to complement the text summary to form a more complete chapter summary.
     </p>
-    <p>The visual objects are shown in two groups:</p>
+    <p>The visual elements are shown in two groups:</p>
     <ul class="help-list">
       <li>
-        <strong>Top — Selected Visual Objects (S1, S2, &hellip;):</strong>
+        <strong>Top — Selected Visual Elements (S1, S2, &hellip;):</strong>
         These objects were automatically chosen for the visual summary.
       </li>
       <li>
-        <strong>Bottom — Unselected Visual Objects (U1, U2, &hellip;):</strong>
+        <strong>Bottom — Unselected Visual Elements (U1, U2, &hellip;):</strong>
         These objects were extracted from the same video chapter but were
         <em>not</em> selected for the visual summary.
       </li>

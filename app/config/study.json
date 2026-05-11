@@ -18,7 +18,7 @@
     {
       "id": "faithfulness",
       "label": "Faithfulness",
-      "question": "How faithful is each summary to what is actually presented in the video chapter?",
+      "question": "How faithful is each summary? A highly faithful summary is completely and strictly derived from the lecture video content.",
       "low_label": "Not Faithful",
       "high_label": "Very Faithful"
     },
@@ -49,17 +49,17 @@
   "visual_questions": {
     "selection_quality": {
       "label": "Selection Quality",
-      "question": "The top row in the picture consists of visual objects selected for the visual summary. Rate the overall quality of the visual summary of this video chapter.",
+      "question": "Rate the overall quality of the above visual summary for this video chapter that is composed of selected visual objects.",
       "low_label": "Very Poor",
       "high_label": "Excellent"
     },
     "include_important": {
       "label": "Include Important",
-      "question": "The bottom row in the picture consists of visual objects NOT selected for the visual summary. Identify any unselected visual objects which, in your opinion, should be part of a good visual summary. Select below:"
+      "question": "The above illustration also presents visual objects NOT selected for the visual summary. Identify any unselected visual objects which, in your opinion, are important for a visual summary. Select below:"
     },
     "exclude_unimportant": {
       "label": "Exclude Unimportant",
-      "question": "Among the visual objects selected for the visual summary in the top row, identify any that, in your opinion, should not be part of the visual summary. Deselect below:"
+      "question": "Among the visual objects selected for the visual summary, identify any that, in your opinion, should not be part of the visual summary. Deselect below:"
     }
   },
   "familiarity_options": [
