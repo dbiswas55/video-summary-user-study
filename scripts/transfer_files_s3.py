@@ -135,23 +135,31 @@ def upload_folder(
     s3_root: str = S3_TRANSFER_ROOT,
     bucket: str = BUCKET,
     overwrite: bool = False,
+    include_videos: bool = True,
 ) -> None:
     """Upload all files under <data>/<local_path> to s3://<bucket>/<s3_root>/<s3_dir>/.
 
-    local_path: path relative to the local data root (data/).
-    s3_dir    : destination under transfer/; defaults to local_path if None.
+    local_path    : path relative to the local data root (data/).
+    s3_dir        : destination under transfer/; defaults to local_path if None.
     overwrite=False (default): skip files that already exist in S3.
     overwrite=True            : upload and overwrite regardless.
+    include_videos=True  (default): include video files (.mp4, .mov, .avi, .mkv, .webm).
+    include_videos=False          : skip video files.
     """
+    VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
     s3 = boto3.client("s3")
     local_folder = LOCAL_DATA_ROOT / _as_path(local_path)
     prefix = _prefix(s3_dir if s3_dir is not None else local_path, s3_root)
     skipped = 0
+    skipped_videos = 0
 
     for file_path in sorted(local_folder.rglob("*")):
         if not file_path.is_file():
             continue
         if any(part.startswith(".") for part in file_path.parts):
+            continue
+        if not include_videos and file_path.suffix.lower() in VIDEO_EXTENSIONS:
+            skipped_videos += 1
             continue
         relative = file_path.relative_to(local_folder)
         s3_key = prefix + relative.as_posix()
@@ -165,6 +173,8 @@ def upload_folder(
         print(f"Uploading {relative} -> s3://{bucket}/{s3_key}")
         s3.upload_file(str(file_path), bucket, s3_key)
 
+    if skipped_videos:
+        print(f"Skipped {skipped_videos} video file(s) (include_videos=False).")
     if skipped:
         print(f"Skipped {skipped} already-existing file(s). Use overwrite=True to replace them.")
     print("Upload complete.")
@@ -288,18 +298,19 @@ def delete_folder(
 
 if __name__ == "__main__":
     # Set operation to one of: "list", "upload", "collect", "download", "delete"
-    operation = "collect"
+    operation = "upload"
 
     # local_path: relative to data/  |  s3_dir: relative to transfer/ in S3
     # For upload : provide local_path; s3_dir defaults to local_path if omitted.
     # For download/collect: provide s3_dir; local_path defaults to s3_dir if omitted.
     local_path = "resources"    # relative to project root
     s3_dir = "resources"        # relative to transfer/
+    include_videos = False      # set True to also upload video files (.mp4, .mov, etc.)
 
     if operation == "list":
         list_folder(s3_dir=s3_dir)
     elif operation == "upload":
-        upload_folder(local_path, s3_dir=s3_dir, overwrite=False)
+        upload_folder(local_path, s3_dir=s3_dir, overwrite=False, include_videos=include_videos)
     elif operation == "collect":
         collect_folder(s3_dir=s3_dir, overwrite=False)
     elif operation == "download":
