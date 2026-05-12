@@ -136,15 +136,19 @@ def upload_folder(
     bucket: str = BUCKET,
     overwrite: bool = False,
     include_videos: bool = True,
+    videos_only: bool = False,
 ) -> None:
     """Upload all files under <data>/<local_path> to s3://<bucket>/<s3_root>/<s3_dir>/.
 
-    local_path    : path relative to the local data root (data/).
-    s3_dir        : destination under transfer/; defaults to local_path if None.
-    overwrite=False (default): skip files that already exist in S3.
-    overwrite=True            : upload and overwrite regardless.
+    local_path         : path relative to the local data root (data/).
+    s3_dir             : destination under transfer/; defaults to local_path if None.
+    overwrite=False    : skip files that already exist in S3.
+    overwrite=True     : upload and overwrite regardless.
     include_videos=True  (default): include video files (.mp4, .mov, .avi, .mkv, .webm).
     include_videos=False          : skip video files.
+    videos_only=False  (default): upload all files (subject to include_videos).
+    videos_only=True             : upload video files only; all non-video files are skipped.
+                                   (overrides include_videos — videos are always included).
     """
     VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
     s3 = boto3.client("s3")
@@ -152,13 +156,18 @@ def upload_folder(
     prefix = _prefix(s3_dir if s3_dir is not None else local_path, s3_root)
     skipped = 0
     skipped_videos = 0
+    skipped_non_videos = 0
 
     for file_path in sorted(local_folder.rglob("*")):
         if not file_path.is_file():
             continue
         if any(part.startswith(".") for part in file_path.parts):
             continue
-        if not include_videos and file_path.suffix.lower() in VIDEO_EXTENSIONS:
+        is_video = file_path.suffix.lower() in VIDEO_EXTENSIONS
+        if videos_only and not is_video:
+            skipped_non_videos += 1
+            continue
+        if not videos_only and not include_videos and is_video:
             skipped_videos += 1
             continue
         relative = file_path.relative_to(local_folder)
@@ -173,6 +182,8 @@ def upload_folder(
         print(f"Uploading {relative} -> s3://{bucket}/{s3_key}")
         s3.upload_file(str(file_path), bucket, s3_key)
 
+    if skipped_non_videos:
+        print(f"Skipped {skipped_non_videos} non-video file(s) (videos_only=True).")
     if skipped_videos:
         print(f"Skipped {skipped_videos} video file(s) (include_videos=False).")
     if skipped:
@@ -298,7 +309,7 @@ def delete_folder(
 
 if __name__ == "__main__":
     # Set operation to one of: "list", "upload", "collect", "download", "delete"
-    operation = "upload"
+    operation = "collect"
 
     # local_path: relative to data/  |  s3_dir: relative to transfer/ in S3
     # For upload : provide local_path; s3_dir defaults to local_path if omitted.
@@ -306,11 +317,12 @@ if __name__ == "__main__":
     local_path = "resources"    # relative to project root
     s3_dir = "resources"        # relative to transfer/
     include_videos = False      # set True to also upload video files (.mp4, .mov, etc.)
+    videos_only = False         # set True to upload video files only (non-videos are skipped)
 
     if operation == "list":
         list_folder(s3_dir=s3_dir)
     elif operation == "upload":
-        upload_folder(local_path, s3_dir=s3_dir, overwrite=False, include_videos=include_videos)
+        upload_folder(local_path, s3_dir=s3_dir, overwrite=False, include_videos=include_videos, videos_only=videos_only)
     elif operation == "collect":
         collect_folder(s3_dir=s3_dir, overwrite=False)
     elif operation == "download":
