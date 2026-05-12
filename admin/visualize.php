@@ -188,7 +188,7 @@ include __DIR__ . '/../app/includes/header.php';
     </div>
     <div class="admin-visualize-actions">
       <span class="admin-visualize-pill"><?= $chapterCount ?> chapter<?= $chapterCount !== 1 ? 's' : '' ?></span>
-      <a href="<?= e(baseUrl('admin/index.php')) ?>" class="btn btn-secondary btn-sm">Back to Admin</a>
+      <a href="<?= e(baseUrl('admin/manage.php')) ?>" class="btn btn-secondary btn-sm">Back to Admin</a>
     </div>
   </header>
 

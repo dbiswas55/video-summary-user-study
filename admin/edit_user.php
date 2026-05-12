@@ -25,13 +25,13 @@ $user = $stmt->fetch();
 
 if (!$user) {
     setFlash('error', 'User not found.');
-    header('Location: ' . baseUrl('admin/index.php'));
+  header('Location: ' . baseUrl('admin/manage.php'));
     exit;
 }
 
 if ($user['is_admin']) {
     setFlash('error', 'Admin accounts are not editable from this page.');
-    header('Location: ' . baseUrl('admin/index.php'));
+  header('Location: ' . baseUrl('admin/manage.php'));
     exit;
 }
 
@@ -150,7 +150,7 @@ include __DIR__ . '/../app/includes/header.php';
 <div class="admin-wrap">
   <div class="admin-topbar">
     <h1>Edit User</h1>
-    <a href="<?= baseUrl('admin/index.php') ?>" class="btn btn-secondary btn-sm">← Back to Users</a>
+    <a href="<?= baseUrl('admin/manage.php') ?>" class="btn btn-secondary btn-sm">← Back to Users</a>
   </div>
 
   <?php $flash = getFlash(); if ($flash): ?>

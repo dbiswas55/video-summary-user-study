@@ -78,7 +78,7 @@ include __DIR__ . '/../app/includes/header.php';
 
 <div class="admin-wrap">
   <div class="admin-topbar">
-    <a href="<?= baseUrl('admin/index.php') ?>" class="btn btn-secondary btn-sm">← Dashboard</a>
+    <a href="<?= baseUrl('admin/dashboard.php') ?>" class="btn btn-secondary btn-sm">← Dashboard</a>
     <h1>Messages</h1>
   </div>
 

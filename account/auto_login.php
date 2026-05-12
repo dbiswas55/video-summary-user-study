@@ -39,5 +39,5 @@ if (!$user) {
 loginUser($user);
 
 setFlash('success', 'Welcome, ' . $user['username'] . '!');
-header('Location: ' . baseUrl($user['is_admin'] ? 'admin/index.php' : 'dashboard.php'));
+header('Location: ' . baseUrl($user['is_admin'] ? 'admin/dashboard.php' : 'dashboard.php'));
 exit;

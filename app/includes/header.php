@@ -23,18 +23,18 @@ $pageMainClass = trim((string)($pageMainClass ?? ''));
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="<?= baseUrl($headerUser ? 'dashboard.php' : 'index.php') ?>" class="brand">
+    <a href="<?= baseUrl($headerUser ? ($headerUser['is_admin'] ? 'admin/dashboard.php' : 'dashboard.php') : 'index.php') ?>" class="brand">
       <span class="brand-text"><?= e($study['study_title']) ?></span>
     </a>
     <nav class="user-nav">
       <?php if ($headerUser): ?>
-        <a href="<?= baseUrl('dashboard.php') ?>" class="nav-link">Dashboard</a>
+        <a href="<?= baseUrl($headerUser['is_admin'] ? 'admin/dashboard.php' : 'dashboard.php') ?>" class="nav-link">Dashboard</a>
         <?php if ($headerUser['is_admin']): ?>
           <?php
             $pdo = getDb();
             $unread = (int)$pdo->query('SELECT COUNT(*) FROM contact_messages WHERE is_read = FALSE')->fetchColumn();
           ?>
-          <a href="<?= baseUrl('admin/index.php') ?>" class="nav-link">Admin<?= $unread > 0 ? ' <span class="nav-badge">' . $unread . '</span>' : '' ?></a>
+          <a href="<?= baseUrl('admin/manage.php') ?>" class="nav-link">Admin<?= $unread > 0 ? ' <span class="nav-badge">' . $unread . '</span>' : '' ?></a>
         <?php endif; ?>
         <a href="<?= baseUrl('account/profile.php') ?>" class="nav-link">Profile</a>
         <a href="<?= baseUrl('help.php') ?>" class="nav-link">Help</a>

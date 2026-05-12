@@ -3,7 +3,7 @@ require_once __DIR__ . '/app/includes/auth.php';
 require_once __DIR__ . '/app/includes/functions.php';
 
 if (isLoggedIn()) {
-    header('Location: ' . baseUrl('dashboard.php'));
+  header('Location: ' . baseUrl(isAdmin() ? 'admin/dashboard.php' : 'dashboard.php'));
     exit;
 }
 

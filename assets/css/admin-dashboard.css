@@ -1,0 +1,128 @@
+/* Admin dashboard-specific styles */
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.admin-overview-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.admin-overview-kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-overview-value {
+  margin-top: 8px;
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.admin-overview-value.value-accent { color: var(--accent); }
+.admin-overview-value.value-success { color: var(--success); }
+.admin-overview-value.value-warning { color: var(--warning); }
+
+.admin-overview-meta {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.83rem;
+}
+
+.admin-progress-cell {
+  min-width: 180px;
+}
+
+.admin-progress-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+}
+
+.admin-progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.admin-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  min-width: 4px;
+}
+
+.admin-familiarity-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.admin-familiarity-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px 16px;
+}
+
+.admin-familiarity-item strong {
+  display: block;
+  font-size: 0.84rem;
+  margin-bottom: 8px;
+}
+
+.admin-familiarity-count {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.admin-shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.admin-shortcut-card {
+  display: block;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #fbfbfd 0%, #f4f5f9 100%);
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-shortcut-card:hover {
+  text-decoration: none;
+  border-color: #c7c7cc;
+  background: #fff;
+}
+
+.admin-shortcut-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.admin-shortcut-copy {
+  margin-top: 6px;
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
