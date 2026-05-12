@@ -52,6 +52,25 @@
 .admin-table tr:hover td { background: var(--bg); }
 .cell-id { color: var(--muted); font-size: 0.8rem; }
 .cell-muted { color: var(--muted); }
+.admin-edit-heading,
+.admin-edit-cell,
+.admin-login-heading,
+.admin-login-cell {
+  width: 110px;
+  white-space: nowrap;
+}
+.admin-edit-cell .btn,
+.admin-login-cell .btn,
+.admin-login-cell .admin-inline-form {
+  width: 100%;
+}
+.admin-login-cell .admin-inline-form {
+  display: block;
+}
+.admin-edit-cell .btn,
+.admin-login-cell .btn {
+  justify-content: center;
+}
 .admin-id-heading { width: 160px; }
 .type-badge {
   font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 12px;

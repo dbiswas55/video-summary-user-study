@@ -95,7 +95,8 @@ include __DIR__ . '/../app/includes/header.php';
             <th>Active</th>
             <th>Admin</th>
             <th>Last Login</th>
-            <th></th>
+            <th class="admin-edit-heading">Edit</th>
+            <th class="admin-login-heading">Login As</th>
           </tr>
         </thead>
         <tbody>
@@ -109,9 +110,21 @@ include __DIR__ . '/../app/includes/header.php';
             <td><?= $u['is_active'] ? '<span class="status-yes">Yes</span>' : '<span class="status-no">No</span>' ?></td>
             <td><?= $u['is_admin'] ? '<span class="status-yes">Yes</span>' : '—' ?></td>
             <td class="cell-muted"><?= $u['last_login'] ? e($u['last_login']) : '<span class="status-no">Never</span>' ?></td>
-            <td>
+            <td class="admin-edit-cell">
               <?php if (!$u['is_admin']): ?>
                 <a href="<?= baseUrl('admin/edit_user.php?id=' . $u['id']) ?>" class="btn btn-secondary btn-sm">Edit</a>
+              <?php else: ?>
+                —
+              <?php endif; ?>
+            </td>
+            <td class="admin-login-cell">
+              <?php if (!$u['is_admin']): ?>
+                <form method="POST" action="<?= e(baseUrl('admin/switch_user.php')) ?>" class="admin-inline-form" onsubmit="return confirm('This will end the current admin session and sign you in as <?= e($u['username']) ?>. Continue?');">
+                  <input type="hidden" name="user_id" value="<?= e($u['id']) ?>">
+                  <button type="submit" class="btn btn-secondary btn-sm">Login As</button>
+                </form>
+              <?php else: ?>
+                —
               <?php endif; ?>
             </td>
           </tr>

@@ -64,6 +64,9 @@ function loginUser($user) {
     startSessionIfNeeded();
     session_regenerate_id(true);
 
+    // Replace any existing session state so switching users carries no prior identity data.
+    $_SESSION = [];
+
     $_SESSION['user_id']    = $user['id'];
     $_SESSION['username']   = $user['username'];
     $_SESSION['is_admin']   = (bool)$user['is_admin'];

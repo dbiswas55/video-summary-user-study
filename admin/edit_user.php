@@ -2,6 +2,7 @@
 /**
  * Admin: Edit a single user.
  *  - Change subject + courses
+ *  - Set / change password
  *  - Generate / revoke persistent one-click login links
  *  - Activate / deactivate participant accounts
  */
@@ -78,6 +79,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+      if ($action === 'update_password') {
+        $new = $_POST['new_password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
+
+        if (strlen($new) < 4) {
+          setFlash('error', 'Password must be at least 4 characters.');
+        } elseif (!preg_match('/[a-zA-Z]/', $new) || !preg_match('/[0-9]/', $new)) {
+          setFlash('error', 'Password must contain at least one letter and one number.');
+        } elseif ($new !== $confirm) {
+          setFlash('error', 'Passwords do not match.');
+        } else {
+          $hash = password_hash($new, PASSWORD_BCRYPT);
+          $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+            ->execute([$hash, $user_id]);
+          setFlash('success', 'Password updated successfully.');
+        }
+
+        header('Location: ?id=' . $user_id);
+        exit;
+      }
+
     if ($action === 'regenerate_token') {
         $token = generateLoginToken();
         $pdo->prepare('UPDATE users SET login_token = ? WHERE id = ?')
@@ -113,6 +135,7 @@ $user = $stmt->fetch();
 $subjects     = getSubjects();
 $courses      = $user['subject_id'] ? getCoursesBySubject($user['subject_id']) : [];
 $enrolled_ids = array_column(getUserCourses($user_id), 'id');
+$has_password = !empty($user['password_hash']);
 
 $auto_login_url = $user['login_token']
     ? absoluteUrl('account/auto_login.php?token=' . $user['login_token'])
@@ -120,7 +143,7 @@ $auto_login_url = $user['login_token']
 
 $pageTitle = 'Edit User: ' . $user['username'];
 $pageStyles = ['assets/css/admin.css'];
-$pageScripts = ['assets/js/admin-edit-user.js'];
+$pageScripts = ['assets/js/admin-edit-user.js', 'assets/js/common.js'];
 include __DIR__ . '/../app/includes/header.php';
 ?>
 
@@ -141,12 +164,43 @@ include __DIR__ . '/../app/includes/header.php';
         <tr><th class="admin-id-heading">User ID</th><td><?= e($user['id']) ?></td></tr>
         <tr><th>Username</th><td><strong><?= e($user['username']) ?></strong></td></tr>
         <tr><th>Email</th><td><?= e($user['email'] ?? '—') ?></td></tr>
+        <tr><th>Password</th><td><?= $has_password ? '<span class="status-yes">Set</span>' : '<span class="status-no">Not set</span>' ?></td></tr>
         <tr><th>Account Type</th><td><span class="type-badge"><?= e($user['account_type']) ?></span></td></tr>
         <tr><th>Active</th><td><?= $user['is_active'] ? '<span class="status-yes">Yes</span>' : '<span class="status-no">No</span>' ?></td></tr>
         <tr><th>Created</th><td class="cell-muted"><?= e($user['created_at']) ?></td></tr>
         <tr><th>Last Login</th><td class="cell-muted"><?= $user['last_login'] ? e($user['last_login']) : '<span class="status-no">Never</span>' ?></td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section class="admin-section">
+    <h2><?= $has_password ? 'Change Password' : 'Set Password' ?></h2>
+    <p class="muted-meta">
+      This uses the same password rules as the participant profile page: at least 4 characters, including one letter and one number.
+    </p>
+
+    <form method="POST" class="auth-form">
+      <input type="hidden" name="action" value="update_password">
+
+      <label class="admin-field">
+        <span class="admin-field-label">New Password <span class="required-mark">*</span></span>
+        <div class="pw-wrap">
+          <input type="password" name="new_password" id="adminNewPassword" required minlength="4" autocomplete="new-password">
+          <button type="button" class="pw-toggle" onclick="togglePw('adminNewPassword',this)" tabindex="-1">Show</button>
+        </div>
+        <small>At least 4 characters · must include one letter and one number</small>
+      </label>
+
+      <label class="admin-field">
+        <span class="admin-field-label">Confirm New Password <span class="required-mark">*</span></span>
+        <div class="pw-wrap">
+          <input type="password" name="confirm_password" id="adminConfirmPassword" required minlength="4" autocomplete="new-password">
+          <button type="button" class="pw-toggle" onclick="togglePw('adminConfirmPassword',this)" tabindex="-1">Show</button>
+        </div>
+      </label>
+
+      <button type="submit" class="btn btn-primary"><?= $has_password ? 'Change Password' : 'Set Password' ?></button>
+    </form>
   </section>
 
   <section class="admin-section">
