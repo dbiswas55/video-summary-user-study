@@ -40,7 +40,7 @@ $pdo->exec('UPDATE contact_messages SET is_read = TRUE WHERE is_read = FALSE');
 $after_login  = array_values(array_filter($messages, fn($m) => $m['user_id'] !== null));
 $before_login = array_values(array_filter($messages, fn($m) => $m['user_id'] === null));
 
-function renderMessageItem($msg, $fallbackName) {
+function renderMessageItem(array $msg, string $fallbackName): void {
     $sender = $msg['username'] ?? $msg['name'] ?? $fallbackName;
     $status = $msg['is_read'] ? 'Read' : 'New';
     ?>

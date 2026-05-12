@@ -48,12 +48,12 @@ $videoRow = $rows[0];
 $instructorId = (int)$videoRow['instructor_id'];
 $videoId = (int)$videoRow['video_id'];
 
-function visualizeReadResource($instructorId, $videoId, $filename) {
+function visualizeReadResource(int $instructorId, int $videoId, string $filename): string {
     $path = getResourcePath($instructorId, $videoId, $filename);
     return file_exists($path) ? file_get_contents($path) : '';
 }
 
-function visualizeVttTimeToSeconds($time) {
+function visualizeVttTimeToSeconds(string $time): float {
     $time = str_replace(',', '.', trim($time));
     $parts = array_map('floatval', explode(':', $time));
     if (count($parts) === 3) {
@@ -65,7 +65,7 @@ function visualizeVttTimeToSeconds($time) {
     return (float)$time;
 }
 
-function visualizeVttEndTime($vtt) {
+  function visualizeVttEndTime(string $vtt): float {
     $maxEnd = 0.0;
     if (preg_match_all('/-->\s*([0-9:.]+)/', $vtt, $matches)) {
         foreach ($matches[1] as $endTime) {
@@ -75,12 +75,12 @@ function visualizeVttEndTime($vtt) {
     return $maxEnd;
 }
 
-function visualizeFmtTime($secs) {
+  function visualizeFmtTime(float $secs): string {
     $seconds = (int)round($secs);
     return sprintf('%02d:%02d', intdiv($seconds, 60), $seconds % 60);
 }
 
-function visualizeBuildVisualObjects($instructorId, $videoId, $chapterDir, $files, $prefix) {
+  function visualizeBuildVisualObjects(int $instructorId, int $videoId, string $chapterDir, ?array $files, string $prefix): array {
     $items = [];
     foreach (array_values($files ?? []) as $index => $file) {
         $items[] = [
@@ -92,8 +92,8 @@ function visualizeBuildVisualObjects($instructorId, $videoId, $chapterDir, $file
     return $items;
 }
 
-function visualizeJsStr($value) {
-    return json_encode((string)$value, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
+  function visualizeJsStr(mixed $value): string {
+    return json_encode((string)$value, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?: '""';
 }
 
 $transcriptVtt = visualizeReadResource($instructorId, $videoId, 'transcript.vtt');
@@ -154,7 +154,7 @@ foreach ($rows as $row) {
             ? ((string)$row['slide_range_start'] . '–' . (string)$row['slide_range_end'])
             : '',
         'slide_urls' => array_map(
-            fn($file) => getResourceUrl($instructorId, $videoId, $chapterDir . '/slides/' . $file),
+          fn(string $file): string => getResourceUrl($instructorId, $videoId, $chapterDir . '/slides/' . $file),
             $slideFiles
         ),
         'selected_visuals' => visualizeBuildVisualObjects($instructorId, $videoId, $chapterDir, $visualMeta['selected'] ?? [], 'S'),

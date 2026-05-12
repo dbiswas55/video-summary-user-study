@@ -50,7 +50,7 @@ function requireAdmin() {
     }
 }
 
-function getCurrentUser() {
+function getCurrentUser(): ?array {
     startSessionIfNeeded();
     if (!isLoggedIn()) return null;
 
@@ -60,7 +60,7 @@ function getCurrentUser() {
     return $stmt->fetch();
 }
 
-function loginUser($user) {
+function loginUser(array $user): void {
     startSessionIfNeeded();
     session_regenerate_id(true);
 

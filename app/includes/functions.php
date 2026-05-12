@@ -5,7 +5,7 @@
 
 require_once __DIR__ . '/db.php';
 
-function loadJsonConfig($filename) {
+function loadJsonConfig(string $filename): array {
     static $cache = [];
     if (isset($cache[$filename])) return $cache[$filename];
 
@@ -21,12 +21,12 @@ function loadJsonConfig($filename) {
     return $data;
 }
 
-function baseUrl($path = '') {
+function baseUrl(string $path = ''): string {
     $config = require __DIR__ . '/../config/config.php';
     return $config['base_url'] . ltrim($path, '/');
 }
 
-function assetUrl($path) {
+function assetUrl(string $path): string {
     $path = ltrim($path, '/');
     $fullPath = __DIR__ . '/../../' . $path;
     $version = file_exists($fullPath) ? filemtime($fullPath) : time();
@@ -34,7 +34,7 @@ function assetUrl($path) {
     return baseUrl($path . $separator . 'v=' . $version);
 }
 
-function absoluteUrl($path = '') {
+function absoluteUrl(string $path = ''): string {
     $config = require __DIR__ . '/../config/config.php';
     $appUrl = trim($config['app_url'] ?? '');
 
@@ -51,23 +51,23 @@ function absoluteUrl($path = '') {
     return rtrim($appUrl, '/') . '/' . ltrim($path, '/');
 }
 
-function e($value) {
+function e(mixed $value): string {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-function getSubjects() {
+function getSubjects(): array {
     $pdo = getDb();
     return $pdo->query('SELECT * FROM subjects ORDER BY name')->fetchAll();
 }
 
-function getCoursesBySubject($subject_id) {
+function getCoursesBySubject(int $subject_id): array {
     $pdo = getDb();
     $stmt = $pdo->prepare('SELECT * FROM courses WHERE subject_id = ? ORDER BY code');
     $stmt->execute([$subject_id]);
     return $stmt->fetchAll();
 }
 
-function getUserCourses($user_id) {
+function getUserCourses(int $user_id): array {
     $pdo = getDb();
     $stmt = $pdo->prepare('
         SELECT c.* FROM courses c
@@ -79,8 +79,7 @@ function getUserCourses($user_id) {
     return $stmt->fetchAll();
 }
 
-function displayVideoName($filename) {
-    $filename = (string)$filename;
+function displayVideoName(string $filename): string {
     if ($filename === '') {
         return 'Video file not configured';
     }
@@ -90,7 +89,7 @@ function displayVideoName($filename) {
         $core = pathinfo($filename, PATHINFO_FILENAME);
     }
 
-    $core = preg_replace_callback('/[^A-Za-z0-9]+/', function ($match) {
+    $core = preg_replace_callback('/[^A-Za-z0-9]+/', function (array $match): string {
         $symbols = $match[0];
         if (strlen($symbols) === 1) {
             return $symbols;
@@ -109,7 +108,7 @@ function displayVideoName($filename) {
  * Server-side filesystem path to a video's resource folder (or a file within it).
  * Used by PHP to read transcript.vtt, summary files, scan slides/, etc.
  */
-function getResourcePath($instructor_id, $video_id, $file = '') {
+function getResourcePath(int $instructor_id, int $video_id, string $file = ''): string {
     return __DIR__ . "/../../resources/i{$instructor_id}/v{$video_id}/" . $file;
 }
 
@@ -118,7 +117,7 @@ function getResourcePath($instructor_id, $video_id, $file = '') {
  * Used to build src= URLs for slide images.
  * Defaults to BASE_URL/resources/i{n}/v{n}/ when RESOURCES_URL is not set.
  */
-function getResourceUrl($instructor_id, $video_id, $file = '') {
+function getResourceUrl(int $instructor_id, int $video_id, string $file = ''): string {
     $config = require __DIR__ . '/../config/config.php';
     $base = $config['resources_url']
         ? rtrim($config['resources_url'], '/')
@@ -130,7 +129,7 @@ function getResourceUrl($instructor_id, $video_id, $file = '') {
  * Browser-accessible URL to a file stored beside the video mp4.
  * Uses VIDEO_ROOT_URL if set; otherwise falls back to the resource URL root.
  */
-function getVideoAssetUrl($instructor_id, $video_id, $filename) {
+function getVideoAssetUrl(int $instructor_id, int $video_id, string $filename): string {
     $config = require __DIR__ . '/../config/config.php';
     $base = $config['video_root_url']
         ? rtrim($config['video_root_url'], '/')
@@ -142,20 +141,20 @@ function getVideoAssetUrl($instructor_id, $video_id, $filename) {
     return "{$base}/i{$instructor_id}/v{$video_id}/{$filename}";
 }
 
-function getVideoUrl($instructor_id, $video_id, $filename) {
+function getVideoUrl(int $instructor_id, int $video_id, string $filename): string {
     return getVideoAssetUrl($instructor_id, $video_id, $filename);
 }
 
-function isValidUsername($username) {
+function isValidUsername(string $username): bool {
     return preg_match('/^[a-zA-Z0-9_-]{3,50}$/', $username) === 1;
 }
 
-function setFlash($type, $message) {
+function setFlash(string $type, string $message): void {
     if (session_status() === PHP_SESSION_NONE) session_start();
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
 }
 
-function getFlash() {
+function getFlash(): ?array {
     if (session_status() === PHP_SESSION_NONE) session_start();
     if (isset($_SESSION['flash'])) {
         $flash = $_SESSION['flash'];
