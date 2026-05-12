@@ -21,6 +21,35 @@ $users = $pdo->query('
     ORDER BY u.created_at DESC
 ')->fetchAll();
 
+  $videoRows = $pdo->query('
+    SELECT
+      c.id AS course_id,
+      c.code AS course_code,
+      c.name AS course_name,
+      v.video_id,
+      v.video_filename,
+      COUNT(seg.id) AS chapter_count
+    FROM courses c
+    JOIN videos v ON v.course_id = c.id
+    LEFT JOIN segments seg ON seg.video_id = v.id
+    GROUP BY c.id, c.code, c.name, v.id, v.video_id, v.video_filename, v.display_order
+    ORDER BY c.code, v.display_order, v.video_id
+  ')->fetchAll();
+
+  $courseVideos = [];
+  foreach ($videoRows as $videoRow) {
+    $courseId = (int)$videoRow['course_id'];
+    if (!isset($courseVideos[$courseId])) {
+      $courseVideos[$courseId] = [
+        'code' => $videoRow['course_code'],
+        'name' => $videoRow['course_name'],
+        'videos' => [],
+      ];
+    }
+
+    $courseVideos[$courseId]['videos'][] = $videoRow;
+  }
+
 include __DIR__ . '/../app/includes/header.php';
 ?>
 
@@ -91,6 +120,118 @@ include __DIR__ . '/../app/includes/header.php';
       </table>
     </div>
   </section>
+
+  <section class="admin-section admin-video-section">
+    <div class="admin-section-header">
+      <h2>Available Videos</h2>
+      <span class="section-count"><?= count($videoRows) ?> video<?= count($videoRows) !== 1 ? 's' : '' ?> across <?= count($courseVideos) ?> course<?= count($courseVideos) !== 1 ? 's' : '' ?></span>
+    </div>
+
+    <?php if (!$courseVideos): ?>
+      <p class="cell-muted">No videos are available yet.</p>
+    <?php else: ?>
+      <div class="admin-course-groups">
+        <?php foreach ($courseVideos as $courseId => $course): ?>
+          <?php $coursePanelId = 'admin-course-panel-' . (int)$courseId; ?>
+          <section class="admin-course-card">
+            <button
+              type="button"
+              class="admin-course-card-header admin-course-toggle"
+              aria-expanded="true"
+              aria-controls="<?= e($coursePanelId) ?>"
+              data-course-id="<?= (int)$courseId ?>"
+            >
+              <span class="admin-course-card-heading">
+                <span class="admin-course-toggle-icon" aria-hidden="true">&#9662;</span>
+                <span>
+                  <span class="admin-course-code"><?= e($course['code']) ?></span>
+                  <span class="admin-course-name"><?= e($course['name']) ?></span>
+                </span>
+              </span>
+              <span class="admin-course-count"><?= count($course['videos']) ?> video<?= count($course['videos']) !== 1 ? 's' : '' ?></span>
+            </button>
+
+            <div class="admin-video-listing" id="<?= e($coursePanelId) ?>">
+              <?php foreach ($course['videos'] as $video): ?>
+                <?php $visualizeUrl = baseUrl('admin/visualize.php?vid=' . (int)$video['video_id']); ?>
+                <article class="admin-video-item">
+                  <div class="admin-video-meta">
+                    <h4><?= e(displayVideoName($video['video_filename'])) ?></h4>
+                    <p>
+                      Video ID <?= e($video['video_id']) ?>
+                      &nbsp;·&nbsp;
+                      <?= (int)$video['chapter_count'] ?> chapter<?= (int)$video['chapter_count'] !== 1 ? 's' : '' ?>
+                    </p>
+                  </div>
+                  <a href="<?= e($visualizeUrl) ?>" class="btn btn-secondary btn-sm">Open Analysis</a>
+                </article>
+              <?php endforeach; ?>
+            </div>
+          </section>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </section>
 </div>
+
+<script>
+(() => {
+  const storageKeyPrefix = 'admin-course-visibility:';
+  const scrollStorageKey = 'admin-dashboard-scroll';
+
+  function saveScrollPosition() {
+    sessionStorage.setItem(scrollStorageKey, String(window.scrollY || window.pageYOffset || 0));
+  }
+
+  function restoreScrollPosition() {
+    const stored = sessionStorage.getItem(scrollStorageKey);
+    if (stored === null) return;
+    const scrollY = Number(stored);
+    if (!Number.isFinite(scrollY) || scrollY < 0) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, left: 0, behavior: 'auto' });
+      });
+    });
+  }
+
+  function applyExpandedState(button, expanded) {
+    const panel = document.getElementById(button.getAttribute('aria-controls'));
+    const icon = button.querySelector('.admin-course-toggle-icon');
+    if (!panel || !icon) return;
+    button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    panel.hidden = !expanded;
+    icon.innerHTML = expanded ? '&#9662;' : '&#9656;';
+  }
+
+  document.querySelectorAll('.admin-course-toggle').forEach((button) => {
+    const courseId = button.dataset.courseId;
+    const stored = sessionStorage.getItem(storageKeyPrefix + courseId);
+    if (stored === 'collapsed') {
+      applyExpandedState(button, false);
+    }
+
+    button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      const nextExpanded = !expanded;
+      applyExpandedState(button, nextExpanded);
+      sessionStorage.setItem(
+        storageKeyPrefix + courseId,
+        nextExpanded ? 'expanded' : 'collapsed'
+      );
+    });
+  });
+
+  document.querySelectorAll('.admin-video-item a').forEach((link) => {
+    link.addEventListener('click', saveScrollPosition);
+  });
+
+  window.addEventListener('scroll', saveScrollPosition, { passive: true });
+  window.addEventListener('pagehide', saveScrollPosition);
+
+  restoreScrollPosition();
+})();
+</script>
 
 <?php include __DIR__ . '/../app/includes/footer.php'; ?>

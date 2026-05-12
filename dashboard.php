@@ -69,32 +69,6 @@ $total_chapters   = count($rows);
 $total_videos     = array_sum(array_map(fn($course) => count($course['videos']), $courses));
 $completed_count  = count(array_filter($rows, fn($r) => $r['progress'] === 'completed'));
 
-function displayVideoName($filename) {
-    $filename = (string)$filename;
-    if ($filename === '') {
-        return 'Video file not configured';
-    }
-
-    $core = preg_replace('/[^A-Za-z0-9]+[0-9]{4}\.mp4$/i', '', $filename);
-    if ($core === $filename) {
-        $core = pathinfo($filename, PATHINFO_FILENAME);
-    }
-
-    $core = preg_replace_callback('/[^A-Za-z0-9]+/', function ($match) {
-        $symbols = $match[0];
-        if (strlen($symbols) === 1) {
-            return $symbols;
-        }
-
-        $without_underscores = str_replace('_', '', $symbols);
-        return $without_underscores !== ''
-            ? $without_underscores[0]
-            : '_';
-    }, $core);
-
-    return trim($core);
-}
-
 include __DIR__ . '/app/includes/header.php';
 ?>
 
@@ -151,7 +125,8 @@ include __DIR__ . '/app/includes/header.php';
     <button class="db2-course-header db2-course-toggle"
             type="button"
             aria-expanded="true"
-            aria-controls="<?= e($course_panel_id) ?>">
+            aria-controls="<?= e($course_panel_id) ?>"
+            data-course-id="<?= e($course_index) ?>">
       <span class="db2-course-heading-main">
         <span class="db2-course-toggle-icon" aria-hidden="true">⌃</span>
         <span class="db2-course-meta">
@@ -218,15 +193,34 @@ include __DIR__ . '/app/includes/header.php';
 </div>
 
 <script>
-document.querySelectorAll('.db2-course-header').forEach((button) => {
-  button.addEventListener('click', () => {
+(() => {
+  const storageKeyPrefix = 'dashboard-course-visibility:';
+
+  function applyExpandedState(button, expanded) {
     const panel = document.getElementById(button.getAttribute('aria-controls'));
     if (!panel) return;
-    const expanded = button.getAttribute('aria-expanded') === 'true';
-    button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-    panel.hidden = expanded;
+    button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    panel.hidden = !expanded;
+  }
+
+  document.querySelectorAll('.db2-course-header').forEach((button) => {
+    const courseId = button.dataset.courseId || button.getAttribute('aria-controls');
+    const stored = sessionStorage.getItem(storageKeyPrefix + courseId);
+    if (stored === 'collapsed') {
+      applyExpandedState(button, false);
+    }
+
+    button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      const nextExpanded = !expanded;
+      applyExpandedState(button, nextExpanded);
+      sessionStorage.setItem(
+        storageKeyPrefix + courseId,
+        nextExpanded ? 'expanded' : 'collapsed'
+      );
+    });
   });
-});
+})();
 </script>
 
 <?php include __DIR__ . '/app/includes/footer.php'; ?>

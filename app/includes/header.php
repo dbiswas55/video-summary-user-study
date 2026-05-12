@@ -5,6 +5,7 @@ $study  = loadJsonConfig('study.json');
 $headerUser = isLoggedIn() ? getCurrentUser() : null;
 $flash  = getFlash();
 $pageStyles = $pageStyles ?? [];
+$pageMainClass = trim((string)($pageMainClass ?? ''));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +47,7 @@ $pageStyles = $pageStyles ?? [];
   </div>
 </header>
 
-<main class="site-main">
+<main class="site-main<?= $pageMainClass !== '' ? ' ' . e($pageMainClass) : '' ?>">
 
 <?php if ($flash): ?>
   <div class="flash flash-<?= e($flash['type']) ?>">

@@ -79,6 +79,32 @@ function getUserCourses($user_id) {
     return $stmt->fetchAll();
 }
 
+function displayVideoName($filename) {
+    $filename = (string)$filename;
+    if ($filename === '') {
+        return 'Video file not configured';
+    }
+
+    $core = preg_replace('/[^A-Za-z0-9]+[0-9]{4}\.mp4$/i', '', $filename);
+    if ($core === $filename) {
+        $core = pathinfo($filename, PATHINFO_FILENAME);
+    }
+
+    $core = preg_replace_callback('/[^A-Za-z0-9]+/', function ($match) {
+        $symbols = $match[0];
+        if (strlen($symbols) === 1) {
+            return $symbols;
+        }
+
+        $without_underscores = str_replace('_', '', $symbols);
+        return $without_underscores !== ''
+            ? $without_underscores[0]
+            : '_';
+    }, $core);
+
+    return trim($core);
+}
+
 /**
  * Server-side filesystem path to a video's resource folder (or a file within it).
  * Used by PHP to read transcript.vtt, summary files, scan slides/, etc.
