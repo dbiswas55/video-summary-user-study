@@ -92,7 +92,7 @@ function visualizeVttTimeToSeconds(string $time): float {
     return $items;
 }
 
-  function visualizeJsStr(mixed $value): string {
+function visualizeJsStr($value): string {
     return json_encode((string)$value, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?: '""';
 }
 

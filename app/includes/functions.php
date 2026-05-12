@@ -51,7 +51,7 @@ function absoluteUrl(string $path = ''): string {
     return rtrim($appUrl, '/') . '/' . ltrim($path, '/');
 }
 
-function e(mixed $value): string {
+function e($value): string {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
