@@ -146,6 +146,7 @@ body {
 #transcript-body {
   overflow-y: auto;
   padding: 12px 14px;
+  max-height: 500px;
   font-size: 0.8rem;
   line-height: 1.75;
   color: #3c3c43;

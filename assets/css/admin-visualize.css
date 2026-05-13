@@ -154,6 +154,7 @@
 #transcript-body {
   padding: 12px 14px;
   overflow-y: auto;
+  max-height: 500px;
   font-size: 0.82rem;
   line-height: 1.7;
   color: #334155;
