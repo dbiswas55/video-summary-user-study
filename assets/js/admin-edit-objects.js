@@ -9,6 +9,7 @@ let selectionState    = []; // [{filename, url, selected}]
 let dirty             = false;
 let bboxIdCounter     = 0;
 let dragState         = null; // null | {type, ...}
+let deleteMode        = false;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 let slideListEl, canvasWrap, slideImg, slideNameEl, bboxCountEl;
@@ -121,6 +122,10 @@ async function parseJsonResponse(res) {
 }
 
 function submitClassicSave(payload) {
+  submitClassicSaveWithReturnSlide(payload, currentSlideIndex);
+}
+
+function submitClassicSaveWithReturnSlide(payload, slideIndex) {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = DATA.saveUrl;
@@ -141,7 +146,7 @@ function submitClassicSave(payload) {
   const returnInput = document.createElement('input');
   returnInput.type = 'hidden';
   returnInput.name = 'return_to';
-  returnInput.value = buildReturnUrlWithCurrentSlide();
+  returnInput.value = buildReturnUrlWithSlide(slideIndex);
   form.appendChild(returnInput);
 
   document.body.appendChild(form);
@@ -149,15 +154,55 @@ function submitClassicSave(payload) {
 }
 
 function buildReturnUrlWithCurrentSlide() {
+  return buildReturnUrlWithSlide(currentSlideIndex);
+}
+
+function buildReturnUrlWithSlide(slideIndex) {
   let base = DATA.returnUrl || window.location.href;
   try {
     const url = new URL(base, window.location.origin);
-    url.searchParams.set('slide', String(currentSlideIndex));
+    const safeIndex = Number.isFinite(slideIndex)
+      ? Math.max(0, Math.floor(slideIndex))
+      : 0;
+    url.searchParams.set('slide', String(safeIndex));
     return url.pathname + (url.search ? url.search : '');
   } catch (err) {
     const sep = base.includes('?') ? '&' : '?';
-    return base + sep + 'slide=' + encodeURIComponent(String(currentSlideIndex));
+    const safeIndex = Number.isFinite(slideIndex)
+      ? Math.max(0, Math.floor(slideIndex))
+      : 0;
+    return base + sep + 'slide=' + encodeURIComponent(String(safeIndex));
   }
+}
+
+function setDeleteMode(enabled) {
+  deleteMode = !!enabled;
+  slideListEl.classList.toggle('delete-mode', deleteMode);
+  const toggleBtn = document.getElementById('eobj-delete-mode-toggle');
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('active', deleteMode);
+    toggleBtn.textContent = deleteMode ? 'Done Deleting' : 'Delete Slides';
+  }
+}
+
+function requestDeleteSlide(index) {
+  const slide = DATA.slides[index];
+  if (!slide) return;
+
+  const ok = window.confirm(
+    'Delete slide "' + slide.name + '"?\n\n' +
+    'This will remove the slide image, its visual object crops, and related data from metadata.json and detection_data.json.'
+  );
+  if (!ok) return;
+
+  const nextIndex = DATA.slides.length > 1
+    ? Math.max(0, Math.min(DATA.slides.length - 2, index))
+    : 0;
+
+  submitClassicSaveWithReturnSlide(
+    { action: 'delete_slide', vid: DATA.vid, chapter: DATA.chapter, slide_name: slide.name },
+    nextIndex
+  );
 }
 
 function clamp(val, lo, hi) {
@@ -186,8 +231,16 @@ function setStatus(el, msg, type) {
 function renderSlideList() {
   // Wrap in scrollable inner div
   slideListEl.innerHTML =
-    '<div class="eobj-slide-list-header">Slides <span class="eobj-slide-list-count">(' + DATA.slides.length + ')</span></div>' +
+    '<div class="eobj-slide-list-header">' +
+      '<span>Slides <span class="eobj-slide-list-count">(' + DATA.slides.length + ')</span></span>' +
+      '<button type="button" class="eobj-delete-mode-toggle" id="eobj-delete-mode-toggle">Delete Slides</button>' +
+    '</div>' +
     '<div class="eobj-slide-list-inner" id="eobj-slide-list-inner"></div>';
+
+  const toggleBtn = document.getElementById('eobj-delete-mode-toggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => setDeleteMode(!deleteMode));
+  }
 
   const inner = document.getElementById('eobj-slide-list-inner');
 
@@ -211,12 +264,28 @@ function renderSlideList() {
     countEl.id        = 'slide-count-' + index;
     updateSlideCountEl(countEl, index);
 
+    const delEl = document.createElement('span');
+    delEl.className = 'eobj-slide-delete';
+    delEl.title = 'Delete this slide';
+    delEl.textContent = 'Delete';
+
     btn.appendChild(img);
     btn.appendChild(nameEl);
     btn.appendChild(countEl);
-    btn.addEventListener('click', () => loadSlide(index));
+    btn.appendChild(delEl);
+    btn.addEventListener('click', e => {
+      if (e.target && e.target.closest('.eobj-slide-delete')) {
+        e.preventDefault();
+        e.stopPropagation();
+        requestDeleteSlide(index);
+        return;
+      }
+      loadSlide(index);
+    });
     inner.appendChild(btn);
   });
+
+  setDeleteMode(deleteMode);
 }
 
 function updateSlideCountEl(el, index) {

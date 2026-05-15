@@ -438,4 +438,77 @@ if ($action === 'save_selection') {
     eobjOk(['allCrops' => $allCrops]);
 }
 
+// ── Action: delete_slide ─────────────────────────────────────────────────────
+if ($action === 'delete_slide') {
+    $slideName = (string)($payload['slide_name'] ?? '');
+    if ($slideName === '' || !preg_match('/^[a-zA-Z0-9_\-\.]+$/', $slideName)) {
+        eobjError('Invalid slide_name');
+    }
+
+    // Delete slide image file
+    $slidePath = $slidesDir . '/' . $slideName;
+    if (is_file($slidePath)) {
+        @unlink($slidePath);
+    }
+
+    // Delete all visual object crops for this slide
+    $deletedCropNames = [];
+    $cropPattern = $visualObjDir . '/' . $slideName . '_*.jpg';
+    foreach (glob($cropPattern) as $cropPath) {
+        $deletedCropNames[] = basename($cropPath);
+        @unlink($cropPath);
+    }
+    $deletedCropSet = array_flip($deletedCropNames);
+
+    // Remove slide from detection_data
+    if (isset($detectionData[$slideName])) {
+        unset($detectionData[$slideName]);
+    }
+
+    // Remove slide from metadata slides
+    $metaSlides = $metadata['slides'] ?? [];
+    if (is_array($metaSlides)) {
+        $metadata['slides'] = array_values(array_filter($metaSlides, static function ($name) use ($slideName): bool {
+            return (string)$name !== $slideName;
+        }));
+    }
+
+    // Remove deleted crops from selected/unselected lists
+    $selected = $metadata['visual_objects']['selected'] ?? [];
+    $unselected = $metadata['visual_objects']['unselected'] ?? [];
+
+    if (is_array($selected)) {
+        $metadata['visual_objects']['selected'] = array_values(array_filter($selected, static function ($fn) use ($deletedCropSet, $slideName): bool {
+            $name = (string)$fn;
+            if (isset($deletedCropSet[$name])) {
+                return false;
+            }
+            return strpos($name, $slideName . '_') !== 0;
+        }));
+    }
+    if (is_array($unselected)) {
+        $metadata['visual_objects']['unselected'] = array_values(array_filter($unselected, static function ($fn) use ($deletedCropSet, $slideName): bool {
+            $name = (string)$fn;
+            if (isset($deletedCropSet[$name])) {
+                return false;
+            }
+            return strpos($name, $slideName . '_') !== 0;
+        }));
+    }
+
+    if (!eobjWriteJson($detectionPath, $detectionData)) {
+        eobjError('Failed to write detection_data.json', 500);
+    }
+    if (!eobjWriteJson($metadataPath, $metadata)) {
+        eobjError('Failed to write metadata.json', 500);
+    }
+
+    $allCrops = eobjBuildAllCrops($instructorId, $videoId, $chapterDir, $metadata);
+    eobjOk([
+        'deleted_slide' => $slideName,
+        'deleted_crops_count' => count($deletedCropNames),
+        'allCrops' => $allCrops,
+    ]);
+}
+
 eobjError('Unknown action');

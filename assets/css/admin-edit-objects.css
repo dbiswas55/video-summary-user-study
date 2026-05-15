@@ -105,6 +105,10 @@
   color: #6b7280;
   background: #f8fafc;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .eobj-slide-list-count {
@@ -129,6 +133,7 @@
   cursor: pointer;
   text-align: center;
   transition: background 0.12s;
+  position: relative;
 }
 
 .eobj-slide-item:hover {
@@ -167,6 +172,42 @@
 .eobj-slide-item.active .eobj-slide-item-count {
   color: #2563eb;
   font-weight: 700;
+}
+
+.eobj-delete-mode-toggle {
+  border: 1px solid #ef4444;
+  background: #fff;
+  color: #b91c1c;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.eobj-delete-mode-toggle.active {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.eobj-slide-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: 1px solid #fca5a5;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  display: none;
+}
+
+.eobj-slide-list.delete-mode .eobj-slide-delete {
+  display: inline-block;
 }
 
 /* ── Right: editor panel ─────────────────────────────────────────────────── */
