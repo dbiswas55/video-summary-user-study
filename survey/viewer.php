@@ -216,7 +216,9 @@ $visual_meta = is_array($chapter_meta['visual_objects'] ?? null) ? $chapter_meta
 
 function buildVisualObjects($instructor_id, $video_id, $chapter_dir, $files, $prefix) {
     $items = [];
-    foreach (array_values($files ?? []) as $i => $file) {
+  $sortedFiles = array_values($files ?? []);
+  sort($sortedFiles, SORT_STRING);
+  foreach ($sortedFiles as $i => $file) {
         $label = $prefix . ($i + 1);
         $items[] = [
             'label' => $label,

@@ -82,7 +82,9 @@ function visualizeVttTimeToSeconds(string $time): float {
 
   function visualizeBuildVisualObjects(int $instructorId, int $videoId, string $chapterDir, ?array $files, string $prefix): array {
     $items = [];
-    foreach (array_values($files ?? []) as $index => $file) {
+    $sortedFiles = array_values($files ?? []);
+    sort($sortedFiles, SORT_STRING);
+    foreach ($sortedFiles as $index => $file) {
         $items[] = [
             'label' => $prefix . ($index + 1),
             'file' => (string)$file,
@@ -257,6 +259,10 @@ include __DIR__ . '/../app/includes/header.php';
             >
               Play Chapter
             </button>
+              <a
+                href="<?= e(baseUrl('admin/edit_objects.php?vid=' . $videoId . '&chapter=' . $chapter['chapter_num'])) ?>"
+                class="admin-edit-objects-btn"
+              >Edit Objects</a>
           </div>
 
           <div class="admin-chapter-panel" id="<?= e($chapterPanelId) ?>">
