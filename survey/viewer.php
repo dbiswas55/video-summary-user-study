@@ -415,7 +415,15 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
     </video>
     <?php else: ?>
     <div class="video-missing">
-      Video file not configured.
+      <div class="video-missing-inner">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34"/>
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+        <p class="video-missing-title">Video Unavailable</p>
+        <p class="video-missing-desc">The video file for this entry has not been configured.</p>
+      </div>
     </div>
     <?php endif; ?>
     <div class="seg-timeline-wrap">

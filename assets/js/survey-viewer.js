@@ -61,36 +61,67 @@ function parseVtt(vtt) {
 function renderTranscript() {
   if (!transcriptBody) return;
   transcriptBody.innerHTML = '';
+
+  if (!videoAvailable) {
+    const notice = document.createElement('div');
+    notice.className = 'transcript-no-video';
+    notice.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+      '<span>Video file is not available &mdash; transcript shown for reference only</span>';
+    transcriptBody.appendChild(notice);
+  }
+
   if (!transcriptCues.length) {
-    transcriptBody.textContent = '(no transcript)';
+    const msg = document.createElement('p');
+    msg.className = 'transcript-text-only';
+    msg.textContent = '(no transcript)';
+    transcriptBody.appendChild(msg);
     return;
   }
+
   transcriptCues.forEach((cue, index) => {
-    const item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'transcript-cue';
-    item.dataset.index = String(index);
-    item.innerHTML =
-      '<span class="transcript-time">' + fmtTime(cue.start) + '</span>' +
-      '<span class="transcript-text"></span>';
-    item.querySelector('.transcript-text').textContent = cue.text;
-    item.addEventListener('click', () => {
-      if (!video) return;
-      video.currentTime = Math.max(SEG_START, cue.start);
-      syncTranscriptCue();
-      refreshNativeCaptions();
-      video.play().catch(() => {});
-    });
-    transcriptBody.appendChild(item);
+    if (!videoAvailable) {
+      const item = document.createElement('p');
+      item.className = 'transcript-text-only';
+      item.textContent = cue.text;
+      transcriptBody.appendChild(item);
+    } else {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'transcript-cue';
+      item.dataset.index = String(index);
+      item.innerHTML =
+        '<span class="transcript-time">' + fmtTime(cue.start) + '</span>' +
+        '<span class="transcript-text"></span>';
+      item.querySelector('.transcript-text').textContent = cue.text;
+      item.addEventListener('click', () => {
+        if (!video) return;
+        video.currentTime = Math.max(SEG_START, cue.start);
+        syncTranscriptCue();
+        refreshNativeCaptions();
+        video.play().catch(() => {});
+      });
+      transcriptBody.appendChild(item);
+    }
   });
 }
 
 function syncTranscriptHeight() {
-  const vid  = document.getElementById('chapter-video');
   const body = transcriptBody;
-  if (!vid || !body) return;
-  const h = vid.getBoundingClientRect().height;
-  if (h > 60) body.style.height = h + 'px';
+  if (!body) return;
+  if (videoAvailable) {
+    const vid = document.getElementById('chapter-video');
+    if (vid) {
+      const h = vid.getBoundingClientRect().height;
+      if (h > 60) body.style.height = h + 'px';
+    }
+  } else {
+    const placeholder = document.querySelector('.video-missing');
+    if (placeholder) {
+      const h = placeholder.getBoundingClientRect().height;
+      if (h > 60) body.style.height = h + 'px';
+    }
+  }
 }
 
 let transcriptVisible = true;
@@ -105,6 +136,7 @@ function toggleTranscript() {
 
 // ── Video player ──────────────────────────────────────────────────────────────
 const video    = document.getElementById('chapter-video');
+let videoAvailable = !!video;
 const playhead = document.getElementById('seg-playhead');
 const rangeEl  = document.getElementById('seg-range');
 const timeEl   = document.getElementById('seg-current-time');
@@ -190,6 +222,39 @@ if (video) {
   video.addEventListener('play',  () => { document.getElementById('seg-play-btn').textContent = '⏸ Pause'; document.getElementById('seg-play-btn').classList.add('pausing'); });
   video.addEventListener('pause', () => { document.getElementById('seg-play-btn').textContent = '▶ Play'; document.getElementById('seg-play-btn').classList.remove('pausing'); });
   video.addEventListener('loadedmetadata', () => setTimeout(syncTranscriptHeight, 50));
+
+  // Handle the case where the video filename is configured but the file is
+  // missing on the server (browser fires 'error' on the <source> element,
+  // not the <video> element itself, so we listen on both).
+  let videoErrorFired = false;
+  const onVideoLoadError = () => {
+    if (videoErrorFired) return;
+    videoErrorFired = true;
+    videoAvailable = false;
+    video.style.display = 'none';
+    const playBtn     = document.getElementById('seg-play-btn');
+    const restrictBtn = document.getElementById('seg-restrict-btn');
+    if (playBtn)     { playBtn.disabled = true; playBtn.textContent = '▶ Play'; }
+    if (restrictBtn) { restrictBtn.disabled = true; }
+    const ph = document.createElement('div');
+    ph.className = 'video-missing';
+    ph.innerHTML =
+      '<div class="video-missing-inner">' +
+      '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34"/>' +
+      '<path d="M23 7l-7 5 7 5V7z"/>' +
+      '<line x1="1" y1="1" x2="23" y2="23"/>' +
+      '</svg>' +
+      '<p class="video-missing-title">Video Unavailable</p>' +
+      '<p class="video-missing-desc">The video file could not be loaded from the server.</p>' +
+      '</div>';
+    video.parentNode.insertBefore(ph, video.nextSibling);
+    renderTranscript();
+    syncTranscriptHeight();
+  };
+  video.addEventListener('error', onVideoLoadError);
+  const videoSrcEl = video.querySelector('source');
+  if (videoSrcEl) videoSrcEl.addEventListener('error', onVideoLoadError);
 }
 window.addEventListener('resize', syncTranscriptHeight);
 setTimeout(syncTranscriptHeight, 400);
@@ -237,7 +302,7 @@ function toggleRestrict() {
 }
 
 function jumpToSegment() {
-  if (!video) return;
+  if (!videoAvailable || !video) return;
   if (!video.paused) { video.pause(); }
   else {
     video.currentTime = SEG_START;
@@ -247,7 +312,7 @@ function jumpToSegment() {
 }
 
 document.getElementById('seg-timeline').addEventListener('click', (e) => {
-  if (!video) return;
+  if (!videoAvailable || !video) return;
   const rect = e.currentTarget.getBoundingClientRect();
   video.currentTime = (e.clientX - rect.left) / rect.width * (video.duration || 1);
   refreshNativeCaptions();
