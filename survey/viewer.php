@@ -605,7 +605,7 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
         <div class="visual-step-intro">
           <div class="section-label questions-label">Part 2 · Visual Object Selection</div>
           <p class="visual-purpose-note">
-            In this section, you will help us evaluate a visual summary composed of selected visual objects from the video frames. The purpose of the visual summary is to complement the text summary and form a more complete multimodal chapter summary.
+            In this section, you will help us evaluate a visual summary composed of four selected visual objects from the video frames. The purpose of the visual summary is to complement the text summary and form a more complete multimodal chapter summary.
           </p>
         </div>
       </div>
