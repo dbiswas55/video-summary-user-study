@@ -319,6 +319,7 @@ document.getElementById('seg-timeline').addEventListener('click', (e) => {
 });
 
 renderTranscript();
+syncTranscriptHeight();
 
 // ── Slides ────────────────────────────────────────────────────────────────────
 const stripEl = document.getElementById('slide-strip');
