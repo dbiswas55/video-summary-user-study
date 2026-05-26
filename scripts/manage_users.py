@@ -25,9 +25,9 @@ from _db_common import connect
 # None, omitted, an empty string, or an actual email address. Subject and courses
 # complete the same setup that participants choose in the web flow.
 # Course IDs must belong to subject_code.
-# Current subjects: BIOL courses 527, 528, 532; COSC courses 531, 533.
+# Current subjects: BIOL courses 527, 528, 532; COSC courses 390, 533.
 USERS_TO_CREATE = [
-    {"username": "dummy1", "email": None, "password": "dummy1pass", "subject_code": "COSC", "course_ids": [531, 533]},
+    {"username": "dummy1", "email": None, "password": "dummy1pass", "subject_code": "COSC", "course_ids": [390, 533]},
     {"username": "dummy2", "email": None, "password": "dummy2pass", "subject_code": "BIOL", "course_ids": [527, 528]},
 ]
 
