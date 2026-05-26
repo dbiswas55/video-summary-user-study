@@ -303,6 +303,7 @@ foreach ($stmt_com->fetchAll() as $c) {
 }
 
 $prev_selection_quality_rating = '';
+$prev_selection_quality_comment = '';
 $prev_include_important = [];
 $prev_exclude_unimportant = [];
 $prev_include_important_none = false;
@@ -317,6 +318,7 @@ try {
     $prev_vis = $stmt_vis->fetch();
     if ($prev_vis) {
         $prev_selection_quality_rating = (string)($prev_vis['selection_quality_rating'] ?? '');
+        $prev_selection_quality_comment = (string)($prev_vis['selection_quality_comment'] ?? '');
         $prev_include_important = json_decode(($prev_vis['include_important_labels'] ?? '') ?: '[]', true) ?: [];
         $prev_exclude_unimportant = json_decode(($prev_vis['exclude_unimportant_labels'] ?? '') ?: '[]', true) ?: [];
         $prev_include_important_none = !empty($prev_vis['include_important_none'] ?? 0);
@@ -696,6 +698,9 @@ $slide_range = $row['slide_range_start'] . '–' . $row['slide_range_end'];
             <div class="scale-buttons" id="visual-rating-btns"></div>
             <span class="rating-display" id="visual-rating-display">not rated</span>
           </div>
+          <textarea class="qc-comment" name="visual_selection_quality_comment"
+            placeholder="Optional comment on your <?= e(strtolower($visual_questions['selection_quality']['label'])) ?> rating…"
+            rows="2"><?= e($prev_selection_quality_comment) ?></textarea>
         </div>
       </div>
 

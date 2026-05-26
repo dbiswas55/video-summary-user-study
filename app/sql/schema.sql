@@ -205,6 +205,7 @@ CREATE TABLE IF NOT EXISTS responses_visual_objects (
     user_id INT NOT NULL,
     segment_id INT NOT NULL,
     selection_quality_rating TINYINT DEFAULT NULL CHECK (selection_quality_rating BETWEEN 1 AND 10),
+    selection_quality_comment TEXT DEFAULT NULL,
     include_important_labels TEXT DEFAULT NULL,
     include_important_none TINYINT(1) NOT NULL DEFAULT 0,
     exclude_unimportant_labels TEXT DEFAULT NULL,

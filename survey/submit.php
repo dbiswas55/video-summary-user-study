@@ -26,6 +26,7 @@ function ensureVisualResponsesTable($pdo) {
             user_id INT NOT NULL,
             segment_id INT NOT NULL,
             selection_quality_rating TINYINT DEFAULT NULL CHECK (selection_quality_rating BETWEEN 1 AND 10),
+            selection_quality_comment TEXT DEFAULT NULL,
             include_important_labels TEXT DEFAULT NULL,
             include_important_none TINYINT(1) NOT NULL DEFAULT 0,
             exclude_unimportant_labels TEXT DEFAULT NULL,
@@ -158,6 +159,7 @@ $has_selection_quality_rating = $selection_quality_rating !== null && $selection
 if ($action === 'submit' && !$has_selection_quality_rating) {
     $errors[] = "Visual object rating is required ({$rating_min}–{$rating_max}).";
 }
+$selection_quality_comment = trim((string)($_POST['visual_selection_quality_comment'] ?? ''));
 $include_important = validLabelSubset($_POST['visual_include_important'] ?? [], $visual_labels['unselected']);
 $exclude_unimportant = validLabelSubset($_POST['visual_exclude_unimportant'] ?? [], $visual_labels['selected']);
 $include_important_none = ($_POST['visual_include_important_none'] ?? '0') === '1';
@@ -247,13 +249,14 @@ try {
     }
 
     // Visual object responses
-    if ($has_any_visual_response) {
+    if ($has_any_visual_response || $selection_quality_comment !== '') {
         $stmt_visual = $pdo->prepare('
             INSERT INTO responses_visual_objects
-                (user_id, segment_id, selection_quality_rating, include_important_labels, include_important_none, exclude_unimportant_labels, exclude_unimportant_none)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (user_id, segment_id, selection_quality_rating, selection_quality_comment, include_important_labels, include_important_none, exclude_unimportant_labels, exclude_unimportant_none)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 selection_quality_rating = VALUES(selection_quality_rating),
+                selection_quality_comment = VALUES(selection_quality_comment),
                 include_important_labels = VALUES(include_important_labels),
                 include_important_none = VALUES(include_important_none),
                 exclude_unimportant_labels = VALUES(exclude_unimportant_labels),
@@ -264,6 +267,7 @@ try {
             $user_id,
             $segment_id,
             $has_selection_quality_rating ? $selection_quality_rating : null,
+            $selection_quality_comment !== '' ? $selection_quality_comment : null,
             json_encode($include_important, JSON_UNESCAPED_UNICODE),
             $include_important_none ? 1 : 0,
             json_encode($exclude_unimportant, JSON_UNESCAPED_UNICODE),
