@@ -1,41 +1,42 @@
-# Phase 1 - User System
+# Phase 1 — User System
 
-This phase covers identity, access, registration consent, profile management, admin user operations, participant contact messages, and one-click access links.
+This phase covers identity and access: login, registration with consent, profile management, admin user/resource operations, participant contact messages, the participant help guide, and one-click access links.
 
 ## Owned Files
 
 | Area | Files |
 |---|---|
 | Public entry | `index.php`, `account/login.php`, `account/logout.php`, `account/register.php`, `account/forgot_password.php`, `account/auto_login.php` |
-| Consent config and PDF | `app/config/consent.json`, `app/config/VideopointsHRP-502a-ConsentForm.pdf`, `account/consent_pdf.php` |
-| Participant account | `account/profile.php`, `dashboard.php` user summary/course selection touchpoints |
-| Admin account work | `admin/index.php`, `admin/edit_user.php`, `admin/messages.php` |
+| Consent config & PDF | `app/config/consent.json`, `app/config/VideopointsHRP-502a-ConsentForm.pdf`, `account/consent_pdf.php` |
+| Participant pages | `account/profile.php`, `dashboard.php` (course selection touchpoints), `contact.php`, `help.php` |
+| Admin pages | `admin/dashboard.php`, `admin/manage.php`, `admin/edit_user.php`, `admin/messages.php`, `admin/switch_user.php`, `admin/index.php` (legacy users table) |
 | Shared helpers | `app/includes/auth.php`, `app/includes/functions.php`, `app/includes/header.php`, `app/includes/footer.php`, `app/includes/mailer.php` |
-| Page assets | `assets/css/auth.css`, `assets/css/register.css`, `assets/css/profile.css`, `assets/css/admin.css`, `assets/css/messages.css`, `assets/css/contact.css`, shared styles in `assets/css/main.css`, and page scripts in `assets/js/` |
-| CLI tools | `scripts/manage_users.py`, `scripts/db.py` with `operation = "default-users"` when intentionally refreshing default users |
+| Page assets (CSS) | `assets/css/main.css`, `auth.css`, `register.css`, `profile.css`, `contact.css`, `dashboard.css`, `help.css`, `admin.css`, `admin-dashboard.css`, `admin-manage.css`, `messages.css` |
+| Page assets (JS) | `assets/js/common.js`, `auth.js`, `register.js`, `admin-edit-user.js` |
+| CLI tools | `scripts/manage_users.py` (participants); `scripts/db.py` with `operation = "default-users"` for refreshing defaults |
 | Tables | `users`, `user_courses`, `contact_messages` |
 
 ## Account Types
 
 | Type | Created by | Initial access | Later access |
 |---|---|---|---|
-| Admin | `scripts/db.py` with `operation = "setup"`, `scripts/manage_users.py`, or direct admin setup | Username/email + password | Username/email + password |
+| Admin | `scripts/db.py` (`operation = "setup"` or `"default-users"`) | Username/email + password | Username/email + password |
 | Self-registered participant | `account/register.php` | Username/email + password | Username/email + password |
-| Pre-issued participant | `scripts/manage_users.py` or admin edit page | One-click link, or username + email while no password is set | One-click link, or username/email + password after password is set |
+| Pre-issued participant | `scripts/manage_users.py` or `admin/edit_user.php` | One-click link, **or** username + email while no password is set | One-click link, or username/email + password after password is set |
 
-Pre-issued users can set a password from `account/profile.php`. Password setup does not remove `users.login_token`; one-click links remain valid until an admin regenerates or revokes the link, or deactivates the account.
+Pre-issued users can set a password from `account/profile.php`. Saving a password does **not** clear `users.login_token`; one-click links remain valid until an admin regenerates/revokes the link or deactivates the account.
 
 ## Login Flow
 
-`index.php` shows the sign-in form. The current rules are:
+`index.php` shows the sign-in form. Current rules:
 
 | Inputs | Allowed for | Handler behavior |
 |---|---|---|
-| Username or email + password | Admins, self-registered users, pre-issued users with a password | `account/login.php` finds by username/email and verifies `password_hash`. |
-| Username + email, no password | Pre-issued users only, only before a password is set | `account/login.php` requires matching username and email, `account_type = 'pre_issued'`, empty `password_hash`, and active account. |
-| One-click URL | Users with an active `login_token` | `account/auto_login.php` signs the user in and sends them to `dashboard.php` for participants or `admin/index.php` for admins. |
+| Username or email + password | Admins, self-registered users, pre-issued users with a password set | `account/login.php` finds by username/email and verifies `password_hash`. |
+| Username + email, no password | Pre-issued users only, only before a password is set | `account/login.php` requires matching username/email, `account_type = 'pre_issued'`, empty `password_hash`, and an active account. |
+| One-click URL | Users with an active `login_token` | `account/auto_login.php` signs the user in and sends them to `dashboard.php` (participants) or `admin/dashboard.php` (admins). |
 
-The login page shows a **Need a one-click access link?** option. Clicking it opens the email form. `account/forgot_password.php` sends a one-click access link only when the submitted email belongs to an active non-admin account, but the browser always receives a generic message so account existence is not exposed.
+The login page exposes a **Need a one-click access link?** option. `account/forgot_password.php` sends a one-click link only when the submitted email belongs to an active non-admin account — the browser always receives a generic message so account existence is not leaked.
 
 ## Registration Flow
 
@@ -43,34 +44,34 @@ The login page shows a **Need a one-click access link?** option. Clicking it ope
 
 | Step | Purpose |
 |---|---|
-| 1 | Consent from `app/config/consent.json`; stores consent version and timestamp. Can render either inline text sections or the configured PDF consent form. The participant page shows a simplified one-line heading and does not display the internal consent version. |
-| 2 | Required username, required password/confirm, optional email. Email can later be used for sign-in. |
-| 3 | Required subject selection with confirmation that the subject area cannot be changed later by the participant. |
-| 4 | Course selection within the selected subject, using the same compact checkbox layout used by `account/profile.php`. |
+| 1 | Consent from `app/config/consent.json` (PDF or inline text). Stores `consent_version` and `consent_timestamp`. |
+| 2 | Required username, required password + confirm, optional email. Email can later be used for sign-in. |
+| 3 | Required subject selection, with a note that the subject area cannot be changed later by the participant. |
+| 4 | Course selection within the chosen subject, using the same compact checkbox layout as `account/profile.php`. |
 
 Registration creates a `self_registered` user, inserts selected rows into `user_courses`, logs the user in, and redirects to `dashboard.php`.
 
 ### Consent Display Modes
 
-`app/config/consent.json` controls the first registration step with `display_mode`:
+`app/config/consent.json` controls step 1 via `display_mode`:
 
 | Value | Behavior |
 |---|---|
 | `pdf` | Shows the configured PDF from `pdf.filename` through `account/consent_pdf.php`, plus the PDF-specific agreement checkbox label. |
-| `text` | Shows the existing inline `sections` text and the existing `agreement_label`. |
+| `text` | Shows the inline `sections` text and the `agreement_label`. |
 
-Current PDF mode uses:
+Key settings (current PDF mode):
 
 | Setting | Role |
 |---|---|
-| `title` | Short page heading, currently `Consent Form`. |
-| `study_name` | Participant-facing study name, currently `VideoPoints User Study on Video Detailed Summary`. |
-| `version` | Internal consent version stored with the user record; it is not shown on the registration page. |
+| `title` | Short page heading (currently `Consent Form`). |
+| `study_name` | Participant-facing study name. |
+| `version` | Internal consent version stored on the user record; not shown to the participant. |
 | `pdf.filename` | PDF file under `app/config/`. |
 | `pdf.intro` | Short instruction paragraph above the embedded PDF. |
-| `pdf.agreement_label` | Checkbox label shown before continuing to account setup. |
+| `pdf.agreement_label` | Checkbox label before continuing to account setup. |
 
-The consent PDF can remain under `app/config/`; that directory is not directly browsable because of `.htaccess`, so `account/consent_pdf.php` streams only the configured PDF file. The route validates that the configured file exists and has a `.pdf` extension before sending it as `application/pdf`.
+The consent PDF stays under `app/config/`; that folder is not directly browsable (`.htaccess` / `web.config`). `account/consent_pdf.php` validates that the configured file exists and has a `.pdf` extension before streaming it as `application/pdf`.
 
 ## Profile Flow
 
@@ -79,48 +80,66 @@ The consent PDF can remain under `app/config/`; that directory is not directly b
 Current behavior:
 
 - Shows username, email status, password status, subject, and course selection.
-- Does not show account type, registration date, or last-login details.
+- Does **not** show account type, registration date, or last-login details.
 - Allows users without an email to add one.
-- Allows password setup/change with only `new password` and `confirm password`; current password is not required.
+- Allows password setup/change with only `new password` + `confirm password`; current password is not required.
 - Keeps any existing `login_token` after password save.
-- Shows a short note only when no password is set, explaining that the user can add a password from Profile for password-based sign-in.
-- Allows course changes only among courses under the user's existing subject.
-- Uses the same compact course checkbox layout as registration. The shared compact course styling lives in `assets/css/main.css`.
+- Shows a short hint **only** when no password is set, explaining that the user can add one for password-based sign-in.
+- Allows course changes only within the user's existing subject.
+- Uses the same compact course checkbox layout as registration. Shared styles live in `assets/css/main.css`.
 
-Subject changes remain an admin responsibility. This keeps the participant registration rule consistent: the subject area is treated as fixed after registration.
+Subject changes remain an admin-only operation — the subject area is treated as fixed after registration.
 
-## Admin User Management
+## Participant Help Guide
 
-`admin/index.php` lists users and links to `admin/edit_user.php` for non-admin accounts.
+`help.php` is a logged-in participant guide that explains the study flow, dashboard, viewer controls, and Part 1 / Part 2 question structure. It is linked from the header's **Help** nav item and uses `assets/css/help.css`. The page includes a print-only header so participants can print or save the guide as PDF.
 
-`admin/edit_user.php` supports:
+## Admin Pages
 
-- Updating a participant's subject and course assignments.
-- Generating a persistent one-click access link.
-- Revoking an existing one-click link.
-- Deactivating or reactivating a participant account. Deactivation blocks both password sign-in and one-click links.
+The header's **Admin** link points to `admin/manage.php`. The legacy `admin/index.php` users table is still present.
 
-The generated URL uses `absoluteUrl()` and should follow `APP_URL` from `.env` when configured. For local development, for example:
+| Page | Purpose |
+|---|---|
+| `admin/dashboard.php` | Admin landing page: high-level stats — total participants, active in last 7 days, never-logged-in, assigned chapters, etc. Uses `assets/css/admin.css` + `admin-dashboard.css`. |
+| `admin/manage.php` | Combined users table + course/video/segments table with shortcuts to `edit_user.php`, `edit_objects.php`, `visualize.php`, and `switch_user.php`. Uses `assets/css/admin.css` + `admin-manage.css`. |
+| `admin/edit_user.php` | Per-participant: update subject + course assignments, generate/revoke a one-click access link, deactivate/reactivate. Uses `assets/js/admin-edit-user.js` for the copy-link button. |
+| `admin/messages.php` | Contact messages grouped by sent-before-login vs. after-login. Opening the page marks unread as read after rendering (so newly opened messages still show as `New` on that view). Admins can delete messages. |
+| `admin/switch_user.php` | POST-only "Login As" handler — ends the current admin session and signs in as the selected non-admin, active participant. Triggered by a confirmed form in `admin/manage.php`. |
+
+The generated one-click URL uses `absoluteUrl()`, which follows `APP_URL` from `.env`:
 
 ```text
+# Local
 APP_URL=http://localhost:8888/userstudy2/
-```
 
-For production under the VideoPoints site, use the deployed subfolder URL, for example:
-
-```text
+# Production
 APP_URL=https://www.videopoints.org/public/sites/userstudy2/
 ```
 
-`admin/messages.php` shows contact messages grouped by whether they were sent before or after login. Opening the page marks unread messages as read after loading them, so newly opened messages still appear as `New` for that page view. Admins can delete stored messages from this page.
+> Phase 2 admin tools (`admin/visualize.php`, `admin/edit_objects.php`, `admin/save_objects_ajax.php`) live next to these pages but are documented in [Phase 2](phase2-resources.md).
 
-`scripts/manage_users.py` provides development support for pre-issued participant creation, login URL generation, and participant deletion. Admin creation remains a Phase 0 responsibility in `scripts/db.py`.
+## CLI: `scripts/manage_users.py`
+
+Used for pre-issued participant accounts. **Admin creation remains a Phase 0 responsibility in `scripts/db.py`.**
+
+Operations are selected by uncommenting one line in `main()`:
+
+| Operation | Purpose |
+|---|---|
+| `create-users` | Insert each entry in `USERS_TO_CREATE` (username, password, subject_code, course_ids), verifying first that at least one active admin already exists. |
+| `retrieve-login-info` | Print username/password/one-click URL for pre-issued non-admin users. Supports `refresh_pw` and `refresh_token` flags. |
+| `delete-users` | Interactive deletion of non-admin users (per-row `y/N/q` prompt). |
+
+The script builds one-click URLs from `APP_URL`, falling back to `BASE_URL`, and then to `SERVER_HOST + BASE_URL` for cases where only `BASE_URL` is a relative path.
 
 ## Contact and Email
 
-`contact.php` stores messages in `contact_messages`. Logged-in users are attached by `user_id`; anonymous/pre-login messages store the entered name and optional email.
+`contact.php` stores messages in `contact_messages`:
 
-If mail settings are present in `.env`, `app/includes/mailer.php` also emails the configured admin notification address. The same mail helper is used by `account/forgot_password.php` to send one-click access links.
+- Logged-in users are attached by `user_id`.
+- Anonymous/pre-login messages store the entered name and optional email.
+
+When `.env` mail settings are present, `app/includes/mailer.php` emails the configured admin notification address. The same helper sends one-click links from `account/forgot_password.php`.
 
 Required mail-related `.env` keys:
 
@@ -134,33 +153,31 @@ MAIL_FROM_NAME=VideoPoints User Study
 ADMIN_NOTIFY_EMAIL=thevideopoints@gmail.com
 ```
 
-Use a Gmail app password, not the normal Gmail account password.
+Use a Gmail **app password**, not the normal account password.
 
 ## Database Tables
 
 | Table | Role |
 |---|---|
-| `users` | Username, optional email, password hash, subject, account type, active/admin flags, one-click token, login timestamps. |
-| `user_courses` | Participant-course assignments used by profile and dashboard. |
-| `contact_messages` | Messages sent to the admin before or after login. |
+| `users` | Username, optional email, password hash, subject, account type, active/admin flags, one-click `login_token`, login timestamps. |
+| `user_courses` | Participant–course assignments used by Profile and Dashboard. |
+| `contact_messages` | Messages sent before or after login. |
 
-The full table definitions live in `app/sql/schema.sql`.
+Full definitions live in `app/sql/schema.sql`.
 
-## Phase 1 Scripts and Assets
-
-The current Phase 1 scripts and assets are all referenced:
+## Page Asset Reference
 
 | File | Used by |
 |---|---|
 | `assets/js/common.js` | Password show/hide buttons on login and profile. |
 | `assets/js/auth.js` | Login/register tab switching, forgot-password form toggle, login input hints. |
-| `assets/js/register.js` | Client-side password validation for registration step 2. Server validation remains authoritative. |
+| `assets/js/register.js` | Client-side password validation for registration step 2 (server validation remains authoritative). |
 | `assets/js/admin-edit-user.js` | Copy button for admin-generated one-click access links. |
-| `scripts/manage_users.py` | Optional CLI helper for pre-issued participant accounts and login URLs. |
-| `scripts/db.py` | Phase 0 database setup/default users; still relevant because default admin/test accounts support Phase 1 access. |
+| `assets/css/admin.css`, `admin-dashboard.css`, `admin-manage.css`, `messages.css` | Admin pages. |
+| `assets/css/auth.css`, `register.css`, `profile.css`, `contact.css`, `dashboard.css`, `help.css` | Participant pages. |
 
-No old nested `assets/js/pages/`, `assets/js/common/password-toggle.js`, or `assets/css/pages/` files are part of the current layout.
+No legacy `assets/js/pages/`, `assets/js/common/password-toggle.js`, or `assets/css/pages/` files exist in the current layout.
 
 ## Phase Boundaries
 
-Phase 1 owns user identity and participant access. It touches course selection because users need assigned courses, but the resource/video content for those courses belongs to Phase 2. It does not own the survey viewer or response storage; those belong to Phase 3.
+Phase 1 owns user identity and participant access. It touches course selection because users need assigned courses, but the resource/video content for those courses belongs to Phase 2. It does not own the survey viewer or response storage — those belong to Phase 3.
