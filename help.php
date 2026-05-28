@@ -52,25 +52,26 @@ include __DIR__ . '/app/includes/header.php';
     </h2>
     <p>
       This study evaluates the performance of a proposed multimodal summarization
-      method for lecture video chapters relative to a Baseline. You will be asked
-      to watch (or browse) short lecture chapters and then evaluate their summaries.
+      method for lecture video chapters relative to a Baseline. As a participant,
+      you may watch (or browse) short lecture chapters and then evaluate their
+      summaries.
     </p>
-    <p>Each participant will complete the evaluation in two parts:</p>
+    <p>The evaluation is organized into two parts:</p>
     <ul class="help-list">
       <li>
-        <strong>Part 1 &mdash; Text Summary:</strong>
+        <strong>Part 1 &mdash; Text Summary Evaluation:</strong>
         A side-by-side comparative evaluation of two anonymized text summaries.
       </li>
       <li>
-        <strong>Part 2 &mdash; Visual Summary:</strong>
-        Evaluation of the quality of a visual summary designed to complement the
-        text summary and help form a more complete multimodal chapter summary.
+        <strong>Part 2 &mdash; Visual Object Selection:</strong>
+        An evaluation of a visual summary intended to complement the text summary
+        and help form a more complete multimodal chapter summary.
       </li>
     </ul>
     <div class="help-note">
       <strong>Note:</strong> The two text summaries are labelled <em>Version A</em>
       and <em>Version B</em>. The method behind each version is intentionally hidden
-      so that your ratings are unbiased.
+      so that ratings remain unbiased.
     </div>
   </section>
 
@@ -83,61 +84,80 @@ include __DIR__ . '/app/includes/header.php';
 
     <h3 class="help-subsection-title">2.1 Dashboard</h3>
     <p>
-      After logging in, you land on the <strong>Dashboard</strong>. The dashboard
-      lists all lecture video chapters available to the selected courses (you can 
-      change the selected courses by going to the <strong>Profile</strong> page). Each
-      chapter card shows:
+      After logging in, the <strong>Dashboard</strong> is the landing page. It
+      lists all lecture video chapters available for the courses you have selected
+      (the course selection can be updated from the <strong>Profile</strong> page).
+      Chapters are grouped first by <strong>course</strong> and then by
+      <strong>video</strong>, and each course section can be collapsed or expanded.
+      Each chapter row shows:
     </p>
     <ul class="help-list">
       <li>The chapter number and title.</li>
-      <li>A progress badge — <em>Not Started</em>, <em>In Progress</em>, or
-          <em>Completed</em>.</li>
+      <li>A progress badge — <em>Not started</em>, <em>In Progress</em>, or
+          <em>&#10003; Done</em>.</li>
+      <li>An action button — <em>Start Evaluation</em>, <em>Continue</em>, or
+          <em>Review Again</em> — depending on the current progress.</li>
     </ul>
     <p>
-      Click <strong>Start</strong> (or <strong>Continue</strong>) on a chapter card
-      to open the survey page for that chapter.
+      Selecting the action button on a chapter row opens the survey page for that
+      chapter.
     </p>
 
     <h3 class="help-subsection-title">2.2 Survey Page Layout</h3>
-    <p>The survey page is divided into three main areas stacked vertically:</p>
+    <p>The survey page is divided into four main areas stacked vertically:</p>
 
     <div class="help-areas">
       <div class="help-area-card">
         <div class="help-area-label">Area 1 — Video &amp; Transcript</div>
         <p>
-          The lecture video is shown at the top. Playback is restricted to the
-          current chapter by default. You can toggle a button to play whole video.
-          But, your evaluation on summaries should be based on the video chapter. 
-          A <strong>transcript panel</strong> beside the
-          video lets you click any line to jump to that moment. You can toggle
-          on-screen subtitles using the <em>CC</em> button on the player.
+          The lecture video appears at the top. By default, playback is limited to
+          the current chapter; a <strong>Single Chapter Only</strong> toggle below
+          the player can be turned off to play the whole video. Evaluations should
+          be based on the current chapter content. A <strong>transcript panel</strong>
+          beside the video allows you to click any line to jump to that moment, and
+          on-screen subtitles can be toggled using the <em>CC</em> button on the
+          player.
         </p>
         <p>
-          A <strong>slide strip</strong> below the player shows thumbnail images of
-          the slides used in this chapter. Click any thumbnail to enlarge it.
-        </p>
-      </div>
-
-      <div class="help-area-card">
-        <div class="help-area-label">Area 2 — Text Summaries</div>
-        <p>
-          Then you will find <strong>Summary Version A</strong> and
-          <strong>Summary Version B</strong> displayed side by side. Both summaries
-          cover the same chapter.
-        </p>
-        <p>
-          Use the <strong>Diff View</strong> toggle (top-right of the summary panel)
-          to highlight text that differs between the two versions. This can help you
-          compare them more efficiently.
+          A small <strong>segment timeline</strong> under the video shows the
+          chapter's range and the current playback position.
         </p>
       </div>
 
       <div class="help-area-card">
-        <div class="help-area-label">Area 3 — Survey Questions</div>
+        <div class="help-area-label">Area 2 — Slides</div>
         <p>
-          The survey questions appear below the summaries and are split into two
-          parts accessible via the <strong>Part 1</strong> and
-          <strong>Part 2</strong> tabs at the top of the question area.
+          Below the video, a <strong>slide strip</strong> shows thumbnail images of
+          the video frames (slides) used in this chapter. Selecting any thumbnail
+          opens a larger view, and the arrow keys may be used to step through
+          slides.
+        </p>
+      </div>
+
+      <div class="help-area-card">
+        <div class="help-area-label">Area 3 — Summary Comparison</div>
+        <p>
+          <strong>Version A</strong> and <strong>Version B</strong> of the text
+          summary are displayed side by side. Both summaries cover the same chapter.
+          The whole section can be <em>collapsed</em> using the arrow next to
+          <strong>Summary Comparison</strong>.
+        </p>
+        <p>
+          The <strong>Normal</strong> and <strong>Diff View</strong> tabs at the top
+          of this section switch between plain text and a highlighted comparison.
+          In Diff View, text unique to Version A and text unique to Version B are
+          highlighted in different colors, while shared text is left unmarked. This
+          may help when comparing the two summaries.
+        </p>
+      </div>
+
+      <div class="help-area-card">
+        <div class="help-area-label">Area 4 — Survey Questions</div>
+        <p>
+          The survey questions appear below the summaries and are organized into
+          two parts, accessible via the <strong>Part 1</strong> and
+          <strong>Part 2</strong> tabs at the top of the question area. Each tab
+          also shows the current completion status (e.g., <em>0/5</em>).
         </p>
       </div>
     </div>
@@ -150,23 +170,26 @@ include __DIR__ . '/app/includes/header.php';
       Part 1 — Text Summary Evaluation
     </h2>
     <p>
-      Read both summaries carefully before answering. Part 1 contains five questions:
+      It is recommended to read both summaries carefully before answering. Part 1
+      contains five questions:
     </p>
 
     <h3 class="help-subsection-title">Q1 — Background (Familiarity)</h3>
     <p>
-      Select how familiar you are with the topic of this video chapter. This helps
-      us understand how background knowledge influences evaluation.
+      This question asks how familiar you are with the topic of the current video
+      chapter. The response helps us understand how background knowledge may
+      influence the evaluation.
     </p>
 
     <h3 class="help-subsection-title">Q2–Q5 — Rating Dimensions</h3>
     <p>
-      Rate <em>both</em> Version A and Version B on four dimensions —
-      <strong>Faithfulness</strong>, <strong>Completeness</strong>,
-      <strong>Coherence</strong>, and <strong>Usefulness</strong> — using a
-      1–10 scale. Each question on the survey page includes a short description
-      and scale anchors to guide your rating. An optional comment box is also
-      available under each dimension.
+      These four questions ask you to rate <em>both</em> Version A and Version B
+      on the dimensions of <strong>Faithfulness</strong>,
+      <strong>Completeness</strong>, <strong>Coherence</strong>, and
+      <strong>Usefulness</strong> using a 1–10 scale. Each question on the survey
+      page includes a short description and scale anchors for reference. An
+      optional comment box is provided under each dimension for any additional
+      remarks.
     </p>
   </section>
 
@@ -177,29 +200,33 @@ include __DIR__ . '/app/includes/header.php';
       Part 2 — Visual Object Selection
     </h2>
     <p>
-      In Part 2, you evaluate a visual summary made up of <em>visual objects</em> —
-      cropped images extracted from key frames of the lecture video. These are
-      intended to complement the text summary to form a more complete chapter summary.
+      Part 2 focuses on evaluating a visual summary composed of
+      <strong>four selected visual objects</strong> — cropped images extracted from
+      key frames of the lecture video. These are intended to complement the text
+      summary and form <strong>a more complete multimodal chapter summary</strong>.
     </p>
-    <p>The visual objects are shown in two groups:</p>
+    <p>The visual objects are presented in two groups:</p>
     <ul class="help-list">
       <li>
         <strong>Top — Selected Visual Objects (S1, S2, &hellip;):</strong>
-        These objects were automatically chosen for the visual summary.
+        The four objects automatically chosen for the visual summary.
       </li>
       <li>
-        <strong>Bottom — Unselected Visual Objects (U1, U2, &hellip;):</strong>
-        These objects were extracted from the same video chapter but were
-        <em>not</em> selected for the visual summary.
+        <strong>Bottom — Not Selected Visual Objects (U1, U2, &hellip;):</strong>
+        Other objects extracted from the same video chapter that were
+        <em>not</em> chosen for the visual summary.
       </li>
     </ul>
     <p>
-      Use the <strong>Objects per row</strong> slider above the grid to resize the images.
+      The <strong>Images per row</strong> slider above the grid may be used to
+      resize the thumbnails for easier viewing.
     </p>
     <p>
-      Part 2 contains three questions. Please read each question on the survey page
-      carefully — the wording tells you exactly which group of objects to look at
-      and what action to take.
+      Part 2 contains three questions covering the overall quality of the visual
+      summary and whether any important image objects should be added to it or removed from it.
+      Each question on the survey page indicates which group of objects it refers
+      to and what kind of response is expected, so it is recommended to review
+      each question before responding.
     </p>
   </section>
 
@@ -214,9 +241,11 @@ include __DIR__ . '/app/includes/header.php';
       <div class="help-area-card">
         <div class="help-area-label">Save &amp; Finish Later</div>
         <p>
-          Click <strong>Save &amp; Finish Later</strong> at any time to save your
-          current answers and return to the dashboard. Your progress is preserved
-          and you can continue from where you left off.
+          The <strong>Save &amp; Finish Later</strong> button at the bottom of the
+          survey page saves any answered questions and returns to the dashboard.
+          Progress is preserved, so the chapter can be resumed later from where it
+          was left off. This button becomes active once at least one question has
+          been answered.
         </p>
       </div>
       <div class="help-area-card">
@@ -224,22 +253,23 @@ include __DIR__ . '/app/includes/header.php';
         <p>
           Once all required questions in both Part 1 and Part 2 are answered, the
           <strong>Submit Ratings</strong> button becomes available. Submitting
-          finalises your response for this chapter and marks it as
-          <em>Completed</em> on the dashboard.
+          finalizes the response for the chapter and marks it as
+          <em>&#10003; Done</em> on the dashboard.
         </p>
       </div>
     </div>
 
     <p>
-      The progress bar at the bottom of the survey page shows how many required
-      questions in each part are answered, so you can see at a glance what remains
-      before you can submit.
+      A progress indicator at the bottom of the survey page shows how many required
+      questions in each part have been answered (for example,
+      <em>Part 1: 3/5 required · Part 2: 1/3 required · Total: 4/8</em>), making it
+      easy to see what remains before submitting.
     </p>
 
     <div class="help-note">
-      <strong>Required questions:</strong> Five questions in Part 1 and three visual-object 
-      questions in Part 2 must be completed before you can submit. Optional
-      comments do not count toward completion.
+      <strong>Required questions:</strong> Five questions in Part 1 and three
+      visual-object questions in Part 2 should be completed before the response
+      can be submitted. Optional comments do not count toward completion.
     </div>
   </section>
 
@@ -251,33 +281,43 @@ include __DIR__ . '/app/includes/header.php';
     </h2>
 
     <dl class="help-faq">
-      <dt>Do I need to watch the entire video?</dt>
+      <dt>Is it necessary to watch the entire video chapter?</dt>
       <dd>
-        Generally, it is recommended to watch the video chapter to evaluate the summaries as
-        the generated summaries are only based on the video chapter content. 
+        Watching the video chapter is generally recommended, since the generated
+        summaries are based solely on the content of that chapter. The transcript
+        panel and slide thumbnails may also be helpful for navigating the content.
       </dd>
 
-      <dt>Can I change a rating after clicking it?</dt>
+      <dt>Can a rating be changed after it has been selected?</dt>
       <dd>
-        Yes. Click a different number on the same rating row at any time before
-        you submit. Your most recent selection is saved.
+        Yes. Selecting a different number on the same rating row, at any time
+        before submitting, will update the answer. The most recent selection is
+        the one that gets saved.
       </dd>
 
       <dt>Why are the summaries labelled Version A and Version B?</dt>
       <dd>
         The labels are anonymous to avoid bias. Knowing how a summary was generated
-        could influence your ratings, which would affect the validity of the study.
+        could influence the ratings, which would affect the validity of the study.
       </dd>
 
-      <dt>Can I complete the chapters in any order?</dt>
+      <dt>Can the chapters be completed in any order?</dt>
       <dd>
-        Yes. You may complete the chapters in any order from your dashboard.
+        Yes. Chapters may be completed in any order from the dashboard, and a
+        completed chapter can be reviewed again via the <em>Review Again</em>
+        button.
       </dd>
 
-      <dt>What if I have a technical problem or question?</dt>
+      <dt>Where can the Participant Guide be reopened from the survey page?</dt>
       <dd>
-        Use the <strong>Contact</strong> link in the navigation bar to send a
-        message to the study team, or email us directly at
+        The <strong>Participant Guide</strong> link in the top-right of each
+        survey page reopens this guide in a new tab.
+      </dd>
+
+      <dt>What if there is a technical problem or question?</dt>
+      <dd>
+        The <strong>Contact</strong> link in the navigation bar can be used to
+        send a message to the study team, or you may email us directly at
         <a href="mailto:dbiswas@cougarnet.uh.edu">dbiswas@cougarnet.uh.edu</a> or
         <a href="mailto:jsubhlok@central.uh.edu">jsubhlok@central.uh.edu</a>.
         We will respond as soon as possible.
